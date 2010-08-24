@@ -1,0 +1,14 @@
+AC_INIT(envy24control.c)
+AM_INIT_AUTOMAKE(mudita24, 1.0.3)
+AC_PROG_CC
+AC_PROG_INSTALL
+AC_HEADER_STDC
+
+## NPM: version > 1.0.1's logarithmic display requires log10() and therefore
+## "-lm". This solution suggested by Guido Scholz on Linux-Audio-Dev ML.
+AC_CHECK_LIB(m, log10,,AC_MSG_ERROR([required library missing]))
+## NPM: version > 1.0.0 requires gtk+2.0 due to use of functionality like
+## gtk_label_set_markup() and the Gtk Scale Markers being introduced in 2.16
+PKG_CHECK_MODULES(ENVY24CONTROL, gtk+-2.0 alsa >= 0.9.0)
+
+AC_OUTPUT(Makefile)

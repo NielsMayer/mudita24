@@ -1,0 +1,94 @@
+envy24control - Control tool for Envy24 (ice1712) based soundcards
+
+Needs:
+	ALSA, GTK+, an Envy24-based soundcard
+
+To build (from unpacked tarball):
+	./configure
+
+(Note: Envy24control versions > 1.0 (aka "mudita24") expect recent versions
+ of Gtk2 as the GtkScale markers used on the mixer/ADC/DAC sliders have
+ existed only since Gtk version 2.16.  Do not use version 0.6.0's configure
+ option "-with-gtk2=no" and the accompanying file configure.in-gtk1.)
+
+	make
+	su -c 'make install'
+
+To build (from GIT):
+	./gitcompile
+	su -c 'make install'
+
+--------------------
+
+Notes on the Envy24's hardware Digital Mixer and hardware Metering,
+by Niels Mayer ( http://nielsmayer.com ):
+--------------------
+
+The "Monitor Inputs" and "Monitor PCMs" tabs contain multiple scale widgets
+grouped into L/R pairs and an associated peak-level meter. Each scale
+widget represents the 24 bit attenuation value of each input to the
+ice1712-based soundcard's digital mixer. This mixer is typically used for
+zero-latency monitoring of "live" inputs, alongside backing sounds and
+effects coming from the eight channels of PCM feeding the digital mixer.
+When many inputs are "hot" simultaneously these scale-widgets attenuate the
+inputs going into the digital mixer to prevent the output from clipping.
+For details see http://nielsmayer.com/npm/envy24mixer-architecture.png
+
+(from http://alsa.cybermirror.org/manuals/icensemble/envy24.pdf )
+
+This is what the above manual says about the Envy24's digital mixer:
+> 4.5.5 Multi-Track Digital Monitoring
+> 
+> The Envy24 integrates a 36-bit resolution digital hardware mixer. The
+> width of the data path is strictly to ensure that during processing of
+> all the channels, under any condition, no resolution is lost. The
+> dynamic range of the end user system will be limited by the range of the
+> physical output devices used. In order to maintain identical gain to the
+> input stream (i.e. 0dB), the resulting 24-bit is not msb-aligned to the
+> 36-bit. The overflow bits correspond to the analog distortion due to
+> saturation. The user would need to reduce the overall attenuation of the
+> inputs to avoid clipping. Insertion of the digital mixer adds only a
+> single sample cycle delay with respect to the original data. This
+> extremely low latency all digital mixer provides monitoring
+> functionality and can replace a traditional external analog input
+> mixer. There are 20 independent audio data streams to mix and control
+> the volume.
+
+
+Adjustment of responsivity vs. "zipper noise" from the 1.5dB steps at the
+top-range of the digital mixer attenuators is achieved by the following
+control under "Hardware Settings":
+
+> MT3B: Volume Control Rate Register
+> ...
+> Volume update rate control (sampling rate, PSYNC)
+> This register allows gradual change of the digital mixer volume
+> setting. The value in MT3B specifies the number of samples to elapse (in
+> hex) between each 1.5dB increment/decrement in volume mixer.  This gradual
+> volume update continues until the setting programmed into MT38 is
+> reached. The appropriate value to program may vary, but 00 or 01h are good
+> choices for most cases.
+
+The peak metering data is displayed as 0 to -48dBFS in envy24control's
+meters. This data is derived from the envy24's hardware peak metering:
+
+> MT3F: Peak Meter Data Register
+> [...]
+> Peak data derived from the absolute value of 9 msb.  00h min - FFh max
+> volume. Reading the register resets the meter to 00h.
+
+This resolution of the hardware metering is descibed by Fons Adriaensen in
+a mailing list discussion:
+
+http://lists.linuxaudio.org/pipermail/linux-audio-dev/2010-August/029009.html
+> [...] You have 128 steps between 0 and -6dB...
+> And even at -24dB the next step is 1.3dB lower. Below that
+> it gets worse radipdly. For a meter that is just supposed
+> to keep a check on peak levels it's OK.
+
+Note that hardware metering data is also available from the command-line:
+
+> amixer -c M66 cget iface=PCM,name='Multi Track Peak',numid=45
+> numid=45,iface=PCM,name='Multi Track Peak'
+>   ; type=INTEGER,access=r-------,values=22,min=0,max=255,step=0
+>   : values=63,62,51,49,56,60,63,62,59,54,0,0,0,0,0,0,0,0,0,0,113,112
