@@ -92,7 +92,9 @@
 #define MIN_DAC_GAIN -63
 #define MAX_DAC_GAIN 0
 #define ANALOG_GAIN_STEP_SIZE 12  /* this value gives a known -18dB step size for 24 bit attenuators, -6dB step for 16 bit attenuators */
-#define MIXER_ATTENUATOR_STEP_SIZE 8  /* this value gives a known -12dB step size for 24 bit attenuators, -6dB step for 16 bit attenuators */
+// TER: Changed.
+//#define MIXER_ATTENUATOR_STEP_SIZE 8  /* this value gives a known -12dB step size for 24 bit attenuators, -6dB step for 16 bit attenuators */
+#define MIXER_ATTENUATOR_STEP_SIZE 4  /* this value gives a known -6dB step size for 24 bit attenuators, -6dB step for 16 bit attenuators */
 
 /*
  * NPM: For peak meters
@@ -103,6 +105,14 @@
 #define MAX_METERING_LEVEL 255 	/* level corresponding to 0dB output for ice1712 hardware peak meters */
 // #define MIN_METERING_LEVEL_DB -48.164799306 /* == 20*log10(1/(MAX_METERING_LEVEL+1)) */
 // #define MIN_METERING_LEVEL_DB −48.130803609 /* == 20*log10(1/MAX_METERING_LEVEL)     */
+
+// TER:
+#if GTK_CHECK_VERSION(2,4,0)
+  #define HAVE_GTK_24
+#endif
+#if GTK_CHECK_VERSION(2,6,0)
+  #define HAVE_GTK_26
+#endif
 
 /*
  * NPM: 
@@ -276,9 +286,9 @@ void hardware_postinit(void);
 void analog_volume_init(void);
 void analog_volume_postinit(void);
 int envy_dac_volumes(void);
-int envy_dac_max(void);
+//int envy_dac_max(void); // TER
 int envy_adc_volumes(void);
-int envy_adc_max(void);
+//int envy_adc_max(void); // TER
 int envy_ipga_volumes(void);
 int envy_dac_senses(void);
 int envy_adc_senses(void);
@@ -287,6 +297,74 @@ int envy_adc_sense_items(void);
 const char *envy_dac_sense_enum_name(int i);
 const char *envy_adc_sense_enum_name(int i);
 int envy_analog_volume_available(void);
+
+//
+// Custom marker and page up/down snapping stuff by TER.
+//
+typedef enum
+{
+  MIXER_STRIP,
+  DAC_STRIP,
+  ADC_STRIP,
+  IPGA_STRIP
+} StripType;
+typedef struct _SliderScale  SliderScale;
+typedef struct _ScaleMark    ScaleMark;
+struct _ScaleMark
+{
+  gdouble          value;
+  const gchar     *markup;
+  GtkPositionType  position;
+};
+struct _SliderScale
+{
+  GtkScale *scale;
+#ifndef HAVE_GTK_24
+  gdouble   min;      // Use these, since gtk+ 2.4 is required to read them from GtkAdjustment.
+  gdouble   max;      //
+  gdouble   step_inc; //
+  gdouble   page_inc; //
+#endif  
+  StripType type;
+  gint      idx;
+  GSList   *marks;
+};
+extern SliderScale   mixer_volume_scales[20][2];
+extern SliderScale     dac_volume_scales[10];
+extern SliderScale     adc_volume_scales[10];
+extern SliderScale    ipga_volume_scales[10];
+gboolean get_alsa_control_range(SliderScale *sl_scale, gdouble *min, gdouble *max); 
+void scale_add_mark(SliderScale     *sl_scale,
+                    gdouble          value,
+                    GtkPositionType  position,
+                    const gchar     *markup);
+void scale_add_analog_marks(SliderScale     *sl_scale,
+                            GtkPositionType  position,
+                            gboolean         draw_legend_p);
+void scale_add_marks(GtkScale        *scale, 
+#ifndef HAVE_GTK_24
+                     gdouble          min,      
+                     gdouble          max,      
+                     gdouble          step_inc, 
+                     gdouble          page_inc, 
+#endif                      
+                     SliderScale     *sl_scale,
+                     GtkPositionType  position, 
+                     gboolean         draw_legend_p);
+void clear_all_scale_marks(gboolean init);
+gboolean scale_btpress_handler(GtkWidget *widget, GdkEventButton *event, gpointer data);
+gboolean scale_expose_handler(GtkWidget *widget, GdkEventExpose *event, gpointer data);
+void scale_size_req_handler(GtkWidget *widget, GtkRequisition *requisition, gpointer data);
+#ifdef HAVE_GTK_26
+gboolean slider_change_value_handler(GtkRange     *range,
+                                     GtkScrollType scroll,
+                                     gdouble       value,
+                                     gpointer      data);
+#else                                     
+gboolean slider_key_handler(GtkScale *widget, GdkEventKey *event, gpointer data);
+#endif
+//
+//
 
 void dac_volume_update(int idx);
 void adc_volume_update(int idx);
@@ -304,6 +382,7 @@ void mixer_input_callback(gpointer data, gint source, GdkInputCondition conditio
 
 /* NPM: volume/db-related stuff added to volume.c */
 char* peak_level_to_db(int ival);
-void draw_24bit_attenuator_scale_markings(GtkScale *scale, GtkPositionType position, int draw_legend_p);
-void draw_dac_scale_markings(GtkScale *scale, GtkPositionType position);
-void draw_adc_scale_markings(GtkScale *scale, GtkPositionType position);
+// TER: Replaced with custom drawing.
+//void draw_24bit_attenuator_scale_markings(GtkScale *scale, GtkPositionType position, int draw_legend_p);
+//void draw_dac_scale_markings(GtkScale *scale, GtkPositionType position);
+//void draw_adc_scale_markings(GtkScale *scale, GtkPositionType position);
