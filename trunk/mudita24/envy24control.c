@@ -157,6 +157,13 @@ GtkWidget *av_ipga_volume_label[10];
 GtkWidget *av_dac_sense_radio[10][4];
 GtkWidget *av_adc_sense_radio[10][4];
 
+// TER: Custom marker and page up/down snapping stuff. 
+SliderScale   mixer_volume_scales[20][2];
+SliderScale     dac_volume_scales[10];
+SliderScale     adc_volume_scales[10];
+SliderScale    ipga_volume_scales[10];
+
+
 struct profile_button {
 	GtkWidget *toggle_button;
 	GtkWidget *entry;
@@ -164,6 +171,68 @@ struct profile_button {
 
 GtkWidget *active_button = NULL;
 GtkObject *card_number_adj;
+
+static void scale_mark_free(ScaleMark *mark)
+{
+  g_free((gpointer)mark->markup);
+  g_free(mark);
+}
+
+void clear_all_scale_marks(gboolean init)
+{
+  int i, j;
+  for(i = 0; i < 20; i++)
+  {  
+    for(j = 0; j < 2; j++)
+    {  
+      if(!init)
+      {  
+        g_slist_foreach(mixer_volume_scales[i][j].marks, (GFunc)scale_mark_free, NULL);
+        g_slist_free(mixer_volume_scales[i][j].marks);
+      }  
+      mixer_volume_scales[i][j].marks = NULL;
+      mixer_volume_scales[i][j].scale = NULL;
+      mixer_volume_scales[i][j].type  = MIXER_STRIP;
+      mixer_volume_scales[i][j].idx   = i;
+    }  
+  }
+  for(i = 0; i < 10; i++)
+  {  
+    if(!init)
+    {  
+      g_slist_foreach(dac_volume_scales[i].marks, (GFunc)scale_mark_free, NULL);
+      g_slist_free(dac_volume_scales[i].marks);
+    }  
+    dac_volume_scales[i].marks = NULL;
+    dac_volume_scales[i].scale = NULL;
+    dac_volume_scales[i].type  = DAC_STRIP;
+    dac_volume_scales[i].idx   = i;
+  }
+  for(i = 0; i < 10; i++)
+  {  
+    if(!init)
+    {  
+      g_slist_foreach(adc_volume_scales[i].marks, (GFunc)scale_mark_free, NULL);
+      g_slist_free(adc_volume_scales[i].marks);
+    }  
+    adc_volume_scales[i].marks = NULL;
+    adc_volume_scales[i].scale = NULL;
+    adc_volume_scales[i].type  = ADC_STRIP;
+    adc_volume_scales[i].idx   = i;
+  }
+  for(i = 0; i < 10; i++)
+  {  
+    if(!init)
+    {  
+      g_slist_foreach(ipga_volume_scales[i].marks, (GFunc)scale_mark_free, NULL);
+      g_slist_free(ipga_volume_scales[i].marks);
+    }  
+    ipga_volume_scales[i].marks = NULL;
+    ipga_volume_scales[i].scale = NULL;
+    ipga_volume_scales[i].type  = ADC_STRIP;
+    ipga_volume_scales[i].idx   = i;
+  }
+}
 
 static void create_mixer_frame(GtkWidget *box, int stream)
 {
@@ -175,7 +244,10 @@ static void create_mixer_frame(GtkWidget *box, int stream)
 	GtkWidget *vscale;
 	GtkWidget *drawing;
 	GtkWidget *toggle;
-	char str[64], drawname[32];
+  GtkWidget *sl_hbox;
+  GtkWidget *sc_draw_area;
+  
+  char str[64], drawname[32];
 
 	if (stream <= MAX_PCM_OUTPUT_CHANNELS) {
 		sprintf(str, "PCM Out %i", stream);
@@ -203,7 +275,7 @@ static void create_mixer_frame(GtkWidget *box, int stream)
 
 	frame = gtk_frame_new(str);
 	gtk_widget_show(frame);
-	gtk_box_pack_start(GTK_BOX(box), frame, FALSE, TRUE, 0);
+  gtk_box_pack_start(GTK_BOX(box), frame, FALSE, TRUE, 0);
 	gtk_container_set_border_width(GTK_CONTAINER(frame), 2);
 
 	vbox = gtk_vbox_new(FALSE, 6);
@@ -215,6 +287,10 @@ static void create_mixer_frame(GtkWidget *box, int stream)
 	gtk_widget_show(hbox);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, TRUE, TRUE, 0);
 
+  // TER: Create a custom drawing area for the scale markings.
+  sc_draw_area = gtk_drawing_area_new();
+  gtk_widget_show(sc_draw_area);
+
 	/*
 	 * NPM: Left-channel scale widgets to adjust 24 bit attenuation of
 	 * each input into ice1712's on-chip digital mixer.
@@ -222,23 +298,55 @@ static void create_mixer_frame(GtkWidget *box, int stream)
 	adj = gtk_adjustment_new(LOW_MIXER_ATTENUATION_VALUE, 0, LOW_MIXER_ATTENUATION_VALUE, 1, MIXER_ATTENUATOR_STEP_SIZE, 0); /* NPM: using step size of 12 gives -12dB step-size */
 	mixer_adj[stream-1][0] = adj;
 	vscale = gtk_vscale_new(GTK_ADJUSTMENT(adj));
-	gtk_scale_set_draw_value(GTK_SCALE(vscale), FALSE); /* NPM: don't draw value since printing dB values via mixer_adjust() */
-	mixer_vscale[stream-1][0] = vscale;
-	/* NPM: above, set step size of 12 ==> -18dB step-size. Place dB-labelled markers at those locations */
-	draw_24bit_attenuator_scale_markings(GTK_SCALE(vscale), GTK_POS_LEFT,
-					     (channel_group_modulus==1)
-					     ? TRUE
-					     : (stream%channel_group_modulus));
-        gtk_widget_show(vscale);
-	gtk_box_pack_start(GTK_BOX(hbox), vscale, TRUE, FALSE, 0);
+  gtk_scale_set_draw_value(GTK_SCALE(vscale), FALSE); /* NPM: don't draw value since printing dB values via mixer_adjust() */
+  mixer_vscale[stream-1][0] = vscale;
+  /* NPM: above, set step size of 12 ==> -18dB step-size. Place dB-labelled markers at those locations */
+  // TER: Replaced with custom drawing.
+  //draw_24bit_attenuator_scale_markings(GTK_SCALE(vscale), GTK_POS_LEFT,
+  //             (channel_group_modulus==1)
+  //             ? TRUE
+  //             : (stream%channel_group_modulus));
+  gtk_widget_show(vscale);
+
+  // TER: Create list of scale marking positions, connect handlers, then pack.
+  scale_add_marks(GTK_SCALE(vscale), 
+                  #ifndef HAVE_GTK_24
+                  0, LOW_MIXER_ATTENUATION_VALUE, 1, MIXER_ATTENUATOR_STEP_SIZE, 
+                  #endif                   
+                  &mixer_volume_scales[stream - 1][0], GTK_POS_LEFT,
+                  (channel_group_modulus==1) ? TRUE : (stream % channel_group_modulus));
+  g_signal_connect(G_OBJECT(sc_draw_area), "size-request",
+                    G_CALLBACK (scale_size_req_handler), (gpointer)&mixer_volume_scales[stream - 1][0]);
+  //gtk_widget_set_events(sc_draw_area, GDK_STRUCTURE_MASK); // Needed ?
+  g_signal_connect(G_OBJECT(sc_draw_area), "expose_event",
+                    G_CALLBACK (scale_expose_handler), (gpointer)&mixer_volume_scales[stream - 1][0]);
+  gtk_widget_set_events(sc_draw_area, GDK_EXPOSURE_MASK);
+  g_signal_connect(G_OBJECT(sc_draw_area), "button-press-event",
+                    G_CALLBACK (scale_btpress_handler), (gpointer)&mixer_volume_scales[stream - 1][0]);
+  gtk_widget_set_events(sc_draw_area, GDK_BUTTON_PRESS_MASK);
+  gtk_box_pack_start(GTK_BOX(hbox), sc_draw_area, TRUE, TRUE, 0);
+  
+	//gtk_box_pack_start(GTK_BOX(hbox), vscale, TRUE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(hbox), vscale, TRUE, TRUE, 0); // TER
 	gtk_scale_set_digits(GTK_SCALE(vscale), 0);
 	gtk_signal_connect(GTK_OBJECT(adj), "value_changed",
 			   GTK_SIGNAL_FUNC(mixer_adjust),
 			   (gpointer)(long)((stream << 16) + 0));
 
-	vbox1 = gtk_vbox_new(FALSE, 0);
+  // TER: Let us handle the page up/down snapping.
+  #ifdef HAVE_GTK_26
+  gtk_signal_connect(GTK_OBJECT(vscale), "change-value", 
+                      GTK_SIGNAL_FUNC(slider_change_value_handler),
+                      (gpointer)&mixer_volume_scales[stream - 1][0]);
+  #else                    
+  gtk_signal_connect(GTK_OBJECT(vscale), "key-press-event", 
+                      GTK_SIGNAL_FUNC(slider_key_handler),
+                      (gpointer)&mixer_volume_scales[stream - 1][0]);
+  #endif                    
+                      
+  vbox1 = gtk_vbox_new(FALSE, 0);
 	gtk_widget_show(vbox1);
-	gtk_box_pack_start(GTK_BOX(hbox), vbox1, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(hbox), vbox1, FALSE, FALSE, 0);
 
 	drawing = gtk_drawing_area_new();
 	mixer_drawing[stream-1] = drawing;
@@ -251,8 +359,13 @@ static void create_mixer_frame(GtkWidget *box, int stream)
 			   GTK_SIGNAL_FUNC(level_meters_configure_event), NULL);
 	gtk_widget_set_events(drawing, GDK_EXPOSURE_MASK);
 	gtk_widget_set_usize(drawing, 24, (60 * tall_equal_mixer_ht + 204));
-	gtk_box_pack_end(GTK_BOX(vbox1), drawing, FALSE, FALSE, 0);
+  //gtk_box_pack_end(GTK_BOX(vbox1), drawing, FALSE, FALSE, 0);
+  gtk_box_pack_end(GTK_BOX(vbox1), drawing, TRUE, TRUE, 0);  // TER
 
+  // TER: Create a custom drawing area for the scale markings.
+  sc_draw_area = gtk_drawing_area_new();
+  gtk_widget_show(sc_draw_area);
+  
 	/*
 	 * NPM: Right-channel scale widgets to adjust 24bit attenuation of
 	 * each input into ice1712's on-chip digital mixer.
@@ -261,41 +374,78 @@ static void create_mixer_frame(GtkWidget *box, int stream)
 	mixer_adj[stream-1][1] = adj;
 	vscale = gtk_vscale_new(GTK_ADJUSTMENT(adj));
 	gtk_scale_set_draw_value(GTK_SCALE(vscale), FALSE); /* NPM: don't draw value since printing dB values via mixer_adjust() */
-	mixer_vscale[stream-1][1] = vscale;
-	draw_24bit_attenuator_scale_markings(GTK_SCALE(vscale), GTK_POS_RIGHT,
-					     (channel_group_modulus==1)
-					     ? FALSE
-					     : ((stream-1)%channel_group_modulus));
-	gtk_widget_show(vscale);
+  mixer_vscale[stream-1][1] = vscale;
+  // TER: Replaced with custom drawing.
+  //draw_24bit_attenuator_scale_markings(GTK_SCALE(vscale), GTK_POS_RIGHT,
+  //             (channel_group_modulus==1)
+  //             ? FALSE
+  //             : ((stream-1)%channel_group_modulus));
+  gtk_widget_show(vscale);
+
+  // TER: Create list of scale marking positions, connect handlers.
+  scale_add_marks(GTK_SCALE(vscale), 
+                  #ifndef HAVE_GTK_24
+                  0, LOW_MIXER_ATTENUATION_VALUE, 1, MIXER_ATTENUATOR_STEP_SIZE,
+                  #endif  
+                  &mixer_volume_scales[stream - 1][1], GTK_POS_RIGHT,
+                  (channel_group_modulus==1) ? FALSE : ((stream - 1) % channel_group_modulus));
+  g_signal_connect(G_OBJECT(sc_draw_area), "size-request",
+                    G_CALLBACK (scale_size_req_handler), (gpointer)&mixer_volume_scales[stream - 1][1]);
+  //gtk_widget_set_events(sc_draw_area, GDK_STRUCTURE_MASK); // Needed ?
+  g_signal_connect(G_OBJECT(sc_draw_area), "expose_event",
+                    G_CALLBACK (scale_expose_handler), (gpointer)&mixer_volume_scales[stream - 1][1]);
+  gtk_widget_set_events(sc_draw_area, GDK_EXPOSURE_MASK);
+  g_signal_connect(G_OBJECT(sc_draw_area), "button-press-event",
+                    G_CALLBACK (scale_btpress_handler), (gpointer)&mixer_volume_scales[stream - 1][1]);
+  gtk_widget_set_events(sc_draw_area, GDK_BUTTON_PRESS_MASK);
+                            
 	gtk_box_pack_start(GTK_BOX(hbox), vscale, TRUE, FALSE, 0);
 	gtk_scale_set_digits(GTK_SCALE(vscale), 0);
 	gtk_signal_connect(GTK_OBJECT(adj), "value_changed",
 			   GTK_SIGNAL_FUNC(mixer_adjust),
 			   (gpointer)(long)((stream << 16) + 1));
 
+  // TER: Let us handle the page up/down snapping.
+  #ifdef HAVE_GTK_26
+  gtk_signal_connect(GTK_OBJECT(vscale), "change-value", 
+                      GTK_SIGNAL_FUNC(slider_change_value_handler),
+                      (gpointer)&mixer_volume_scales[stream - 1][0]);
+  #else                    
+  gtk_signal_connect(GTK_OBJECT(vscale), "key-press-event", 
+                      GTK_SIGNAL_FUNC(slider_key_handler),
+                      (gpointer)&mixer_volume_scales[stream - 1][1]);
+  #endif                    
+  
+  //gtk_widget_set_size_request(sc_draw_area, sc_width, -1);
+  gtk_box_pack_start(GTK_BOX(hbox), sc_draw_area, TRUE, TRUE, 0); // TER
+  
 	/* NPM: Labels to display the retained peak levels gathered from ice1712's hardware metering */
 	peak_label[stream-1] = gtk_label_new("(Off) ");
 	gtk_widget_modify_font(peak_label[stream-1], pango_font_description_from_string ("Monospace"));
 	gtk_widget_show(peak_label[stream-1]);
-	gtk_box_pack_start(GTK_BOX(vbox), peak_label[stream-1], TRUE, FALSE, 0);
+  //gtk_box_pack_start(GTK_BOX(vbox), peak_label[stream-1], TRUE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(vbox), peak_label[stream-1], FALSE, FALSE, 0); // TER
 	
 	hbox = gtk_hbox_new(TRUE, 0);
 	gtk_widget_show(hbox);
-	gtk_box_pack_start(GTK_BOX(vbox), hbox, TRUE, FALSE, 0);
+	//gtk_box_pack_start(GTK_BOX(vbox), hbox, TRUE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0); // TER
 
 	/* NPM: Labels to display attenuation of Left input into digital mixer: see mixer.c:mixer_adjust() */
 	mixer_label[stream-1][0] = gtk_label_new("(Off) "); /* NPM: note that all but the "(Off)" values get refreshed at startup */
 	gtk_misc_set_alignment(GTK_MISC(mixer_label[stream-1][0]), 0, 0.5);
 	gtk_widget_modify_font(mixer_label[stream-1][0], pango_font_description_from_string ("Monospace"));
 	gtk_widget_show(mixer_label[stream-1][0]);
-	gtk_box_pack_start(GTK_BOX(hbox), mixer_label[stream-1][0], FALSE, TRUE, 0);
+	//gtk_box_pack_start(GTK_BOX(hbox), mixer_label[stream-1][0], FALSE, TRUE, 0);
+  gtk_box_pack_start(GTK_BOX(hbox), mixer_label[stream-1][0], FALSE, FALSE, 0); // TER
 
 	/* NPM: Labels to display attenuation of Right input into digital mixer: see mixer.c:mixer_adjust() */
 	mixer_label[stream-1][1] = gtk_label_new("(Off) "); /* NPM: note that all but the "(Off)" values get refreshed at startup */
 	gtk_misc_set_alignment(GTK_MISC(mixer_label[stream-1][1]), 1, 0.5);
 	gtk_widget_modify_font(mixer_label[stream-1][1], pango_font_description_from_string ("Monospace"));
 	gtk_widget_show(mixer_label[stream-1][1]);
-	gtk_box_pack_start(GTK_BOX(hbox), mixer_label[stream-1][1], FALSE, TRUE, 0);
+	//gtk_box_pack_start(GTK_BOX(hbox), mixer_label[stream-1][1], FALSE, TRUE, 0);
+  gtk_box_pack_start(GTK_BOX(hbox), mixer_label[stream-1][1], FALSE, FALSE, 0); // TER
 
 	toggle = gtk_toggle_button_new_with_label("L/R Gang");
 	mixer_stereo_toggle[stream-1] = toggle;
@@ -367,7 +517,9 @@ static void create_inputs_mixer(GtkWidget *main, GtkWidget *notebook, int page)
 
 	hbox = gtk_hbox_new(FALSE, 0);
 	gtk_widget_show(hbox);
-	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+	// TER: Changed.
+  //gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+  gtk_box_pack_start(GTK_BOX(vbox), hbox, TRUE, TRUE, 0);
 
 	for(stream = (MAX_PCM_OUTPUT_CHANNELS + MAX_SPDIF_CHANNELS + 1); \
 		stream <= input_channels + (MAX_PCM_OUTPUT_CHANNELS + MAX_SPDIF_CHANNELS); stream ++) {
@@ -418,7 +570,9 @@ static void create_pcms_mixer(GtkWidget *main, GtkWidget *notebook, int page)
 
 	hbox = gtk_hbox_new(FALSE, 0);
 	gtk_widget_show(hbox);
-	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+  // TER: Changed.
+	//gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+  gtk_box_pack_start(GTK_BOX(vbox), hbox, TRUE, TRUE, 0);
 
 	for(stream = 1; stream <= pcm_output_channels; stream ++) {
 		if (mixer_stream_is_active(stream))
@@ -1493,7 +1647,7 @@ static void create_about(GtkWidget *main, GtkWidget *notebook, int page)
 <span size=\"small\">Copyright (C) 2003 by Søren Wedel Nielsen</span>\n\
 <span size=\"small\">Copyright (C) 2005 by Alan Horstmann</span>\n\
 <span size=\"small\">Copyright (C) 2010 Niels Mayer ( http://nielsmayer.com )</span>\n\
-<span size=\"small\">Copyright (C) 2010 Tim E. Real</span>\n\
+<span size=\"small\">Copyright (C) 2010 Tim E. Real ( sourceforge: terminator356 )</span>\n\
 ", VERSION);
 	/* Create text as label */
 	label = gtk_label_new("");
@@ -1514,6 +1668,9 @@ static void create_analog_volume(GtkWidget *main, GtkWidget *notebook, int page)
 	GSList *group;
 	GtkWidget *scrolledwindow;
 	GtkWidget *viewport;
+  GtkWidget *sl_hbox;
+  GtkWidget *sc_draw_area;
+  gdouble mn, mx;
 	int i, j;
 	static char* dmx6fire_inputs[6] = {
 		"CD In (L)",
@@ -1583,22 +1740,80 @@ static void create_analog_volume(GtkWidget *main, GtkWidget *notebook, int page)
 		  gtk_box_pack_start(GTK_BOX(vbox), label, FALSE, TRUE, 0);
 		}
 
-		adj = gtk_adjustment_new(0, -(envy_dac_max()), 0, 1, ANALOG_GAIN_STEP_SIZE, 0); /* NPM: using step size of 12 gives -6dB step-size */
+    // TER: Create hbox for scale drawing area + slider.
+    sl_hbox = gtk_hbox_new(FALSE, 0);
+    gtk_widget_show(sl_hbox);
+    gtk_box_pack_start(GTK_BOX(vbox), sl_hbox, TRUE, TRUE, 0);
+    if(!get_alsa_control_range(&dac_volume_scales[i], &mn, &mx))    // TER
+    {
+      mn = 0;
+      mx = 127;
+    }  
+    
+		//adj = gtk_adjustment_new(0, -(envy_dac_max()), 0, 1, ANALOG_GAIN_STEP_SIZE, 0); /* NPM: using step size of 12 gives -6dB step-size */
+    //adj = gtk_adjustment_new(0, mn, mx, 1, ANALOG_GAIN_STEP_SIZE, 0); // TER
+    adj = gtk_adjustment_new(0, -mx, mn, 1, ANALOG_GAIN_STEP_SIZE, 0); // TER
 		av_dac_volume_adj[i] = adj;
 		vscale = gtk_vscale_new(GTK_ADJUSTMENT(adj));
 		/* NPM: above, set step size of 12 ==> -6dB step-size. Place dB-labelled markers at those locations */
-		draw_dac_scale_markings(GTK_SCALE(vscale), (i%channel_group_modulus) ? GTK_POS_RIGHT : GTK_POS_LEFT);
+		// TER: Replaced with custom drawing.
+    //draw_dac_scale_markings(GTK_SCALE(vscale), (i%channel_group_modulus) ? GTK_POS_RIGHT : GTK_POS_LEFT);
 		gtk_scale_set_draw_value(GTK_SCALE(vscale), FALSE); /* NPM: don't draw scale value since we're displaying in dB's */
 		gtk_widget_show(vscale);
-		gtk_box_pack_start(GTK_BOX(vbox), vscale, TRUE, TRUE, 0);
-		gtk_scale_set_digits(GTK_SCALE(vscale), 0);
+    
+    // TER: Create list of scale marking positions.
+    scale_add_marks(GTK_SCALE(vscale), 
+                    #ifndef HAVE_GTK_24
+                    //mn, mx, 1, ANALOG_GAIN_STEP_SIZE,
+                    -mx, mn, 1, ANALOG_GAIN_STEP_SIZE,
+                    #endif 
+                    &dac_volume_scales[i],  
+                    (i % channel_group_modulus) ? GTK_POS_RIGHT : GTK_POS_LEFT, TRUE);
+    // Create a drawing area for the scale markings.
+    sc_draw_area = gtk_drawing_area_new();
+    gtk_widget_show(sc_draw_area);
+    // Connect size requests.
+    g_signal_connect(G_OBJECT(sc_draw_area), "size-request",
+                      G_CALLBACK (scale_size_req_handler), (gpointer)&dac_volume_scales[i]);
+    //gtk_widget_set_events(sc_draw_area, GDK_STRUCTURE_MASK); // Needed ?
+    // Handle the expose event.
+    g_signal_connect(G_OBJECT(sc_draw_area), "expose_event",
+                      G_CALLBACK (scale_expose_handler), (gpointer)&dac_volume_scales[i]);
+    gtk_widget_set_events(sc_draw_area, GDK_EXPOSURE_MASK); // Needed?
+    g_signal_connect(G_OBJECT(sc_draw_area), "button-press-event",
+                      G_CALLBACK (scale_btpress_handler), (gpointer)&dac_volume_scales[i]);
+    gtk_widget_set_events(sc_draw_area, GDK_BUTTON_PRESS_MASK);
+    // Now pack the drawing area into the box.
+    if(i % channel_group_modulus)
+      gtk_box_pack_end(GTK_BOX(sl_hbox), sc_draw_area, TRUE, TRUE, 0);
+    else  
+      gtk_box_pack_start(GTK_BOX(sl_hbox), sc_draw_area, TRUE, TRUE, 0);
+    
+    //gtk_box_pack_start(GTK_BOX(vbox), vscale, TRUE, TRUE, 0); // TER: Changed.
+    if(i % channel_group_modulus)
+      gtk_box_pack_start(GTK_BOX(sl_hbox), vscale, TRUE, TRUE, 0);
+    else
+      gtk_box_pack_end(GTK_BOX(sl_hbox), vscale, TRUE, TRUE, 0);
+
+    gtk_scale_set_digits(GTK_SCALE(vscale), 0);
 		gtk_signal_connect(GTK_OBJECT(adj), "value_changed",
 				   GTK_SIGNAL_FUNC(dac_volume_adjust), 
 				   (gpointer)(long)(i));
 
-	        av_dac_volume_label[i] = label = gtk_label_new("-63.5");
+    // TER: Let us handle the page up/down snapping.
+    #ifdef HAVE_GTK_26
+    gtk_signal_connect(GTK_OBJECT(vscale), "change-value", 
+                        GTK_SIGNAL_FUNC(slider_change_value_handler),
+                        (gpointer)&dac_volume_scales[i]);
+    #else                    
+    gtk_signal_connect(GTK_OBJECT(vscale), "key-press-event", 
+                       GTK_SIGNAL_FUNC(slider_key_handler),
+                       (gpointer)&dac_volume_scales[i]);
+    #endif
+    
+    av_dac_volume_label[i] = label = gtk_label_new("-63.5");
 		gtk_widget_modify_font(label, pango_font_description_from_string ("Monospace"));
-	        gtk_widget_show(label);
+    gtk_widget_show(label);
 		gtk_box_pack_start(GTK_BOX(vbox), label, FALSE, TRUE, 0);
 
 
@@ -1649,21 +1864,79 @@ static void create_analog_volume(GtkWidget *main, GtkWidget *notebook, int page)
 		  gtk_box_pack_start(GTK_BOX(vbox), label, FALSE, TRUE, 0);
 		}
 
-		adj = gtk_adjustment_new(0, -(envy_adc_max()), 0, 1, ANALOG_GAIN_STEP_SIZE, 0); /* using step size of 12 gives -6dB step-size */
+    // TER: Create hbox for scale drawing area + slider.
+    sl_hbox = gtk_hbox_new(FALSE, 0);
+    gtk_widget_show(sl_hbox);
+    gtk_box_pack_start(GTK_BOX(vbox), sl_hbox, TRUE, TRUE, 0);
+    if(!get_alsa_control_range(&adc_volume_scales[i], &mn, &mx))    // TER
+    {
+      mn = 0;
+      mx = 164;
+    }  
+    
+		//adj = gtk_adjustment_new(0, -(envy_adc_max()), 0, 1, ANALOG_GAIN_STEP_SIZE, 0); /* using step size of 12 gives -6dB step-size */
+    //adj = gtk_adjustment_new(0, mn, mx, 1, ANALOG_GAIN_STEP_SIZE, 0); // TER
+    adj = gtk_adjustment_new(0, -mx, mn, 1, ANALOG_GAIN_STEP_SIZE, 0); // TER
 		av_adc_volume_adj[i] = adj;
 		vscale = gtk_vscale_new(GTK_ADJUSTMENT(adj));
 		/* NPM: above, set step size of 12 ==> -6dB step-size. Place dB-labelled markers at those locations */
-		draw_adc_scale_markings(GTK_SCALE(vscale), (i%channel_group_modulus) ? GTK_POS_RIGHT : GTK_POS_LEFT);
+		// TER: Replaced with custom drawing.
+    //draw_adc_scale_markings(GTK_SCALE(vscale), (i%channel_group_modulus) ? GTK_POS_RIGHT : GTK_POS_LEFT);
 		gtk_scale_set_draw_value(GTK_SCALE(vscale), FALSE); /* NPM: don't draw scale value since we're displaying in dB's */
 		gtk_widget_show(vscale);
-		gtk_box_pack_start(GTK_BOX(vbox), vscale, TRUE, TRUE, 0);
-		gtk_scale_set_digits(GTK_SCALE(vscale), 0);
+    
+    // TER: Create list of scale marking positions.
+    scale_add_marks(GTK_SCALE(vscale), 
+                    #ifndef HAVE_GTK_24
+                    //mn, mx, 1, ANALOG_GAIN_STEP_SIZE,
+                    -mx, mn, 1, ANALOG_GAIN_STEP_SIZE,
+                    #endif 
+                    &adc_volume_scales[i], 
+                    (i % channel_group_modulus) ? GTK_POS_RIGHT : GTK_POS_LEFT, TRUE);
+    // Create a drawing area for the scale markings.
+    sc_draw_area = gtk_drawing_area_new();
+    gtk_widget_show(sc_draw_area);
+    // Handle size requests.
+    g_signal_connect(G_OBJECT(sc_draw_area), "size-request",
+                      G_CALLBACK (scale_size_req_handler), (gpointer)&adc_volume_scales[i]);
+    //gtk_widget_set_events(sc_draw_area, GDK_STRUCTURE_MASK); // Needed ?
+    // Handle the expose event.
+    g_signal_connect(G_OBJECT(sc_draw_area), "expose_event",
+                      G_CALLBACK (scale_expose_handler), (gpointer)&adc_volume_scales[i]);
+    gtk_widget_set_events(sc_draw_area, GDK_EXPOSURE_MASK);
+    g_signal_connect(G_OBJECT(sc_draw_area), "button-press-event",
+                      G_CALLBACK (scale_btpress_handler), (gpointer)&adc_volume_scales[i]);
+    gtk_widget_set_events(sc_draw_area, GDK_BUTTON_PRESS_MASK);
+    // Now pack the drawing area into the box.
+    if(i % channel_group_modulus)
+      gtk_box_pack_end(GTK_BOX(sl_hbox), sc_draw_area, TRUE, TRUE, 0);
+    else  
+      gtk_box_pack_start(GTK_BOX(sl_hbox), sc_draw_area, TRUE, TRUE, 0);
+    
+		//gtk_box_pack_start(GTK_BOX(vbox), vscale, TRUE, TRUE, 0); // TER: Changed
+    if(i % channel_group_modulus)
+      gtk_box_pack_start(GTK_BOX(sl_hbox), vscale, TRUE, TRUE, 0);
+    else
+      gtk_box_pack_end(GTK_BOX(sl_hbox), vscale, TRUE, TRUE, 0);
+
+    gtk_scale_set_digits(GTK_SCALE(vscale), 0);
 		gtk_signal_connect(GTK_OBJECT(adj), "value_changed",
 				   GTK_SIGNAL_FUNC(adc_volume_adjust), 
 				   (gpointer)(long)(i));
 
+    // TER: Let us handle the page up/down snapping.
+    #ifdef HAVE_GTK_26
+    gtk_signal_connect(GTK_OBJECT(vscale), "change-value", 
+                        GTK_SIGNAL_FUNC(slider_change_value_handler),
+                        (gpointer)&adc_volume_scales[i]);
+    #else                    
+    gtk_signal_connect(GTK_OBJECT(vscale), "key-press-event", 
+                       GTK_SIGNAL_FUNC(slider_key_handler),
+                       (gpointer)&adc_volume_scales[i]);
+    #endif
+    
 		/* NPM */
-	        av_adc_volume_label[i] = label = gtk_label_new("-63.5");
+    av_adc_volume_label[i] = label = gtk_label_new("-63.5");
 		gtk_widget_modify_font(label, pango_font_description_from_string ("Monospace"));
 		gtk_widget_show(label);
 		gtk_box_pack_start(GTK_BOX(vbox), label, FALSE, TRUE, 0);
@@ -1707,20 +1980,79 @@ static void create_analog_volume(GtkWidget *main, GtkWidget *notebook, int page)
 			gtk_box_pack_start(GTK_BOX(vbox), label, FALSE, TRUE, 3);
 		}
 
-		adj = gtk_adjustment_new(0, -36, 0, 1, 6, 0);
+    // TODO: Added ipga scale code needs TESTING on old ALSA around pre- 1.0.15. TER.
+    // Create hbox for scale drawing area + slider.
+    sl_hbox = gtk_hbox_new(FALSE, 0);
+    gtk_widget_show(sl_hbox);
+    //gtk_container_add(GTK_CONTAINER(viewport), sl_hbox);
+    gtk_box_pack_start(GTK_BOX(vbox), sl_hbox, TRUE, TRUE, 0);
+    if(!get_alsa_control_range(&ipga_volume_scales[i], &mn, &mx))    // TER
+    {
+      mn = 0;
+      mx = 36;
+    }  
+    
+		//adj = gtk_adjustment_new(0, -36, 0, 1, 6, 0);
+    //adj = gtk_adjustment_new(0, mn, mx, 1, 6, 0);  // TER
+    adj = gtk_adjustment_new(0, -mx, mn, 1, 6, 0);  // TER
 		av_ipga_volume_adj[i] = adj;
 		vscale = gtk_vscale_new(GTK_ADJUSTMENT(adj));
 		gtk_scale_set_draw_value(GTK_SCALE(vscale), FALSE);
 		gtk_widget_show(vscale);
-		gtk_box_pack_start(GTK_BOX(vbox), vscale, TRUE, TRUE, 3);
-		gtk_scale_set_digits(GTK_SCALE(vscale), 0);
+
+    // TER: Create list of scale marking positions.
+    scale_add_marks(GTK_SCALE(vscale), 
+                    #ifndef HAVE_GTK_24
+                    //mn, mx, 1, 6,
+                    -mx, mn, 1, 6,
+                    #endif 
+                    &ipga_volume_scales[i],  
+                    (i % channel_group_modulus) ? GTK_POS_RIGHT : GTK_POS_LEFT, TRUE);
+    // Create a drawing area for the scale markings.
+    sc_draw_area = gtk_drawing_area_new();
+    gtk_widget_show(sc_draw_area);
+    // Handle size requests.
+    g_signal_connect(G_OBJECT(sc_draw_area), "size-request",
+                      G_CALLBACK (scale_size_req_handler), (gpointer)&ipga_volume_scales[i]);
+    //gtk_widget_set_events(sc_draw_area, GDK_STRUCTURE_MASK); // Needed ?
+    // Handle the expose event.
+    g_signal_connect(G_OBJECT(sc_draw_area), "expose_event",
+                      G_CALLBACK (scale_expose_handler), (gpointer)&ipga_volume_scales[i]);
+    gtk_widget_set_events(sc_draw_area, GDK_EXPOSURE_MASK);
+    g_signal_connect(G_OBJECT(sc_draw_area), "button-press-event",
+                      G_CALLBACK (scale_btpress_handler), (gpointer)&ipga_volume_scales[i]);
+    gtk_widget_set_events(sc_draw_area, GDK_BUTTON_PRESS_MASK);
+    // Now pack the drawing area into the box.
+    if(i % channel_group_modulus)
+      gtk_box_pack_end(GTK_BOX(sl_hbox), sc_draw_area, TRUE, TRUE, 0);
+    else  
+      gtk_box_pack_start(GTK_BOX(sl_hbox), sc_draw_area, TRUE, TRUE, 0);
+    
+    //gtk_box_pack_start(GTK_BOX(vbox), vscale, TRUE, TRUE, 3); // TER: Changed
+    if(i % channel_group_modulus)
+      gtk_box_pack_start(GTK_BOX(sl_hbox), vscale, TRUE, TRUE, 0);
+    else
+      gtk_box_pack_end(GTK_BOX(sl_hbox), vscale, TRUE, TRUE, 0);
+
+    gtk_scale_set_digits(GTK_SCALE(vscale), 0);
 		gtk_signal_connect(GTK_OBJECT(adj), "value_changed",
 				   GTK_SIGNAL_FUNC(ipga_volume_adjust), 
 				   (gpointer)(long)(i));
 
-	        av_ipga_volume_label[i] = label = gtk_label_new("-63.5");
+    // TER: Let us handle the page up/down snapping.
+    #ifdef HAVE_GTK_26
+    gtk_signal_connect(GTK_OBJECT(vscale), "change-value", 
+                        GTK_SIGNAL_FUNC(slider_change_value_handler),
+                        (gpointer)&ipga_volume_scales[i]);
+    #else                    
+    gtk_signal_connect(GTK_OBJECT(vscale), "key-press-event", 
+                       GTK_SIGNAL_FUNC(slider_key_handler),
+                       (gpointer)&ipga_volume_scales[i]);
+    #endif
+    
+    av_ipga_volume_label[i] = label = gtk_label_new("-63.5");
 		gtk_widget_modify_font(label, pango_font_description_from_string ("Monospace"));
-	        gtk_widget_show(label);
+    gtk_widget_show(label);
 		gtk_box_pack_start(GTK_BOX(vbox), label, FALSE, TRUE, 3);
 	}
 }
@@ -1754,7 +2086,10 @@ int delete_card_number(GtkWidget *delete_button)
 	if (!(GTK_TOGGLE_BUTTON (delete_button)->active))
 		return EXIT_SUCCESS;
 
-	card_nr = GTK_ADJUSTMENT (card_number_adj)->value;
+  // TER: Changed. Value property is new since 2.4
+	//card_nr = GTK_ADJUSTMENT (card_number_adj)->value;
+  card_nr = gtk_adjustment_get_value(GTK_ADJUSTMENT(card_number_adj));
+  
 	if ((card_nr < 0) || (card_nr >= MAX_CARD_NUMBERS)) {
 		fprintf(stderr, "card number not in [0 ... %d]\n", MAX_CARD_NUMBERS - 1);
 		gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON (delete_button), FALSE);
@@ -2127,10 +2462,10 @@ void envy24control_poll() {
 
 int main(int argc, char **argv)
 {
-        GtkWidget *notebook;
-	GtkWidget *outerbox;
-        char *name, tmpname[8], title[128];
-	int i, c, err;
+  GtkWidget *notebook;
+  GtkWidget *outerbox;
+  char *name, tmpname[8], title[128];
+  int i, c, err;
 	snd_ctl_card_info_t *hw_info;
 	snd_ctl_elem_value_t *val;
 	int npfds;
@@ -2182,6 +2517,8 @@ int main(int argc, char **argv)
 	profiles_file_name = DEFAULT_PROFILERC;
 	default_profile = NULL;
 
+  clear_all_scale_marks(TRUE); // TER
+  
 	while ((c = getopt_long(argc, argv, "D:c:f:i:m:Mo:p:s:w:vt:ng:b:l:", long_options, NULL)) != -1) {
 		switch (c) {
 		case 'D':
@@ -2477,5 +2814,7 @@ int main(int argc, char **argv)
 	midi_close();
 	config_close();
 
-	return EXIT_SUCCESS;
+  clear_all_scale_marks(FALSE); // TER
+
+  return EXIT_SUCCESS;
 }

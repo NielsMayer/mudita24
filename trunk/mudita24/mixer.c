@@ -46,7 +46,9 @@ void mixer_update_stream(int stream, int vol_flag, int sw_flag)
 {
 	int err;
 	
-	if (! stream_is_active[stream - 1])
+  //printf("mixer_update_stream stream:%d vol_flag:%d sw_flag:%d\n", stream, vol_flag, sw_flag);
+  
+  if (! stream_is_active[stream - 1])
 		return;
 
 	if (vol_flag) {
@@ -62,8 +64,14 @@ void mixer_update_stream(int stream, int vol_flag, int sw_flag)
 		v[1] = snd_ctl_elem_value_get_integer(vol, 1);
 		if (v[0] != v[1])
 			toggle_set(mixer_stereo_toggle[stream-1], FALSE);
-		gtk_adjustment_set_value(GTK_ADJUSTMENT(mixer_adj[stream-1][0]), MAX_MIXER_ATTENUATION_VALUE - v[0]);
-		gtk_adjustment_set_value(GTK_ADJUSTMENT(mixer_adj[stream-1][1]), MAX_MIXER_ATTENUATION_VALUE - v[1]);
+    
+		// TER: Stop jitter when adjusting sliders.
+    //printf("mixer_update_stream cur val:%f new val:%d\n", GTK_ADJUSTMENT(mixer_adj[stream-1][0])->value, MAX_MIXER_ATTENUATION_VALUE - v[0]);
+    if((gint)gtk_adjustment_get_value(GTK_ADJUSTMENT(mixer_adj[stream-1][0])) != MAX_MIXER_ATTENUATION_VALUE - v[0])
+      gtk_adjustment_set_value(GTK_ADJUSTMENT(mixer_adj[stream-1][0]), MAX_MIXER_ATTENUATION_VALUE - v[0]);
+    if((gint)gtk_adjustment_get_value(GTK_ADJUSTMENT(mixer_adj[stream-1][1])) != MAX_MIXER_ATTENUATION_VALUE - v[1])
+		  gtk_adjustment_set_value(GTK_ADJUSTMENT(mixer_adj[stream-1][1]), MAX_MIXER_ATTENUATION_VALUE - v[1]);
+      
 		midi_controller((stream-1)*2,   v[0]);
 		midi_controller((stream-1)*2+1, v[1]);
 	}
@@ -169,7 +177,7 @@ static void set_volume1(int stream, int left, int right)
 		midi_controller((stream-1)*2+1, right);
 	}
 	if (change) {
-		if ((err = snd_ctl_elem_write(ctl, vol)) < 0 && err != -EBUSY)
+    if ((err = snd_ctl_elem_write(ctl, vol)) < 0 && err != -EBUSY)
 			g_print("Unable to write multi volume: %s\n", snd_strerror(err));
 	}
 }
@@ -220,10 +228,20 @@ void mixer_adjust(GtkAdjustment *adj, gpointer data)
 	int stereo = is_active(mixer_stereo_toggle[stream-1]) ? 1 : 0;
 	int vol[2] = { -1, -1 };
 	
-	vol[button] = MAX_MIXER_ATTENUATION_VALUE - adj->value;
+  // TER: Stop jitter when adjusting sliders.
+  int ival = (int)gtk_adjustment_get_value(adj);
+  //printf("mixer_adjust stream:%d button:%d stereo:%d val:%f newval:%d ival:%d\n", 
+  //       stream, button, stereo, gtk_adjustment_get_value(adj), (int)(MAX_MIXER_ATTENUATION_VALUE - gtk_adjustment_get_value(adj)), ival);
+  
+  //vol[button] = MAX_MIXER_ATTENUATION_VALUE - adj->value;
+  vol[button] = MAX_MIXER_ATTENUATION_VALUE - ival;         // TER
+  
 	if (stereo) {
-		gtk_adjustment_set_value(GTK_ADJUSTMENT(mixer_adj[stream-1][button ^ 1]), adj->value);
-		vol[button ^ 1] = MAX_MIXER_ATTENUATION_VALUE - adj->value;
+    // TER: Changed
+    //gtk_adjustment_set_value(GTK_ADJUSTMENT(mixer_adj[stream-1][button ^ 1]), adj->value);
+		//vol[button ^ 1] = MAX_MIXER_ATTENUATION_VALUE - adj->value;
+    gtk_adjustment_set_value(GTK_ADJUSTMENT(mixer_adj[stream-1][button ^ 1]), gtk_adjustment_get_value(adj)); 
+    vol[button ^ 1] = MAX_MIXER_ATTENUATION_VALUE - ival;
 	}
 	if (vol[0] != -1) {
 	  if (vol[0] <= (MAX_MIXER_ATTENUATION_VALUE - LOW_MIXER_ATTENUATION_VALUE))
@@ -323,3 +341,4 @@ void mixer_postinit(void)
 
 	config_restore_stereo();
 }
+

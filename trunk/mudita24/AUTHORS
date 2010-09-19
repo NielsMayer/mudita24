@@ -32,4 +32,25 @@ Jaroslav Kysela <perex@perex.cz>
    of "Delta IEC958 Input Status" under "Hardware Settings."
 
    Copyright (C) 2010 Niels Mayer ( http://nielsmayer.com )
-   Copyright (C) 2010 Tim E. Real
+
+ (August 2010) TER: (1) Fixed bug - sliders with native markings snap 
+   to detents when using mouse. Removed native GtkScale markings and installed 
+   custom scale marks drawing, and custom page/step up/down key handling.
+   (2) Fixed bug present even in original envy24control - sliders have bad
+   jitter even without scale markings. (3) Allowed digital mixer controls to 
+   expand vertically.
+   TODO: (1) Use ALSA functions to set analog volume sliders and markings, 
+   in order to support different DAC/ADC codec chips. (2) Shorten digital
+   mixer meters to align with scale markings. (3) Use recent gtk functions
+   to more accurately determine space between top of slider troughs and 
+   top of widget. (4) Add scale markings to master meters.
+ (August 17 2010) TER: (1) Replaced hard-coded analog volume min/max 
+   and markings with ALSA derived values. Should now support different 
+   codec chip(s). 2) If gtk+ >= 2.6 use "change-value" signal for full
+   control over sliders. 3) Many clean-ups and rewrites of my last changes.
+   TODO: Still 2), 3), and 4) from last TODOs. Also, 5) try to extend
+   mixer sliders to around -60dB, or a user selectable minimum,  
+   and 6) try to allow master meters to expand vertically.
+   Copyright (C) 2010 Tim E. Real (Sourceforge username: terminator356)
+   
+   
