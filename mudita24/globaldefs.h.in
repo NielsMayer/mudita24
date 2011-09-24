@@ -1,0 +1,11 @@
+
+//#cmakedefine HAVE_XXX
+//#cmakedefine XXX_SUPPORT
+
+#define VERSION          "${mudita24_VERSION}"
+#define ALSACTL          "${mudita24_ALSACTL}"
+#define SVNVERSION       "${mudita24_SVNVER}"
+#define PACKAGE_NAME     "mudita24"
+#define DOCDIR           "${mudita24_DOC_DIR}"
+#define SHAREDIR         "${mudita24_SHARE_DIR}"
+//#define LIBDIR           "${mudita24_LIB_DIR}"
