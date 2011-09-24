@@ -4,6 +4,7 @@
  * This code is added by Takashi Iwai <tiwai@suse.de>
  *
  * Copyright (c) 2000 Jaroslav Kysela <perex@perex.cz>
+ * Copyright (C) 2011 Tim E. Real (terminator356 on sourceforge)
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
