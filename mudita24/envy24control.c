@@ -34,7 +34,7 @@
    (6) Add display of "Delta IEC958 Input Status" under "Hardware Settings."
 
    Copyright (C) 2010 Niels Mayer ( http://nielsmayer.com )
-   Copyright (C) 2010 Tim E. Real
+   Copyright (C) 2010 - 2011 Tim E. Real (terminator356 on sourceforge)
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -1648,7 +1648,7 @@ static void create_about(GtkWidget *main, GtkWidget *notebook, int page)
 <span size=\"small\">Copyright (C) 2003 by Søren Wedel Nielsen</span>\n\
 <span size=\"small\">Copyright (C) 2005 by Alan Horstmann</span>\n\
 <span size=\"small\">Copyright (C) 2010 Niels Mayer ( http://nielsmayer.com )</span>\n\
-<span size=\"small\">Copyright (C) 2010 Tim E. Real ( sourceforge: terminator356 )</span>\n\
+<span size=\"small\">Copyright (C) 2010 - 2011 Tim E. Real ( terminator356 on sourceforge)</span>\n\
 ", VERSION, SVNVERSION);
 	/* Create text as label */
 	label = gtk_label_new("");
