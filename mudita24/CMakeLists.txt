@@ -109,8 +109,8 @@ INSTALL( FILES ${doc_files} DESTINATION ${mudita24_DOC_DIR})
 #      mudita24.1.in
 #      ${PROJECT_BINARY_DIR}/man/${mudita24_EXEC_NAME}.1
 #      )
-install( FILES 
-      ${PROJECT_BINARY_DIR}/man/${mudita24_EXEC_NAME}.1
-      DESTINATION ${SHARE_INSTALL_PREFIX}/man/man1/
-      )
+#install( FILES 
+#      ${PROJECT_BINARY_DIR}/man/${mudita24_EXEC_NAME}.1
+#      DESTINATION ${SHARE_INSTALL_PREFIX}/man/man1/
+#      )
 
