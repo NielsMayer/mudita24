@@ -53,4 +53,10 @@ Jaroslav Kysela <perex@perex.cz>
    and 6) try to allow master meters to expand vertically.
    Copyright (C) 2010 Tim E. Real (Sourceforge username: terminator356)
    
+(September 23 2011) TER: 
+ 1) Moved to cmake build system. 2) Fixed wrong alsactl location. Now cmake looks 
+  for alsactl. Override with environment variable ALSACTL_PROG. 3) Added usage info. 
+ 4) Fixed serious fatal X error: height too big. Was far too many markings, brought down 
+  the system, due to lowest alsa db value now returing -9999999. Installed some limits.   
+Copyright (C) 2011 Tim E. Real (Sourceforge username: terminator356)
    

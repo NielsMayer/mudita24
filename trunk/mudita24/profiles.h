@@ -10,8 +10,10 @@
 #include <assert.h>
 #include <time.h>
 
+#include "globaldefs.h"
+
 #ifndef PROGRAM_NAME
-#define PROGRAM_NAME "envy24control"
+#define PROGRAM_NAME "mudita24"
 #endif
 
 #ifndef MAX_PROFILES

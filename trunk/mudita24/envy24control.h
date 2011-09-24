@@ -7,6 +7,8 @@
 #include <gtk/gtk.h>
 #include <alsa/asoundlib.h>
 
+#include "globaldefs.h"
+
 /* Profiles */
 #ifdef PACKAGE
 #define PROGRAM_NAME PACKAGE

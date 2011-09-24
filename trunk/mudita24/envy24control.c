@@ -51,6 +51,7 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 ******************************************************************************/
 
+#include "globaldefs.h"
 #include "envy24control.h"
 #include "midi.h"
 #include "config.h"
@@ -315,7 +316,7 @@ static void create_mixer_frame(GtkWidget *box, int stream)
                   #endif                   
                   &mixer_volume_scales[stream - 1][0], GTK_POS_LEFT,
                   (channel_group_modulus==1) ? TRUE : (stream % channel_group_modulus));
-  g_signal_connect(G_OBJECT(sc_draw_area), "size-request",
+  g_signal_connect(G_OBJECT(sc_draw_area), "size-request",      
                     G_CALLBACK (scale_size_req_handler), (gpointer)&mixer_volume_scales[stream - 1][0]);
   //gtk_widget_set_events(sc_draw_area, GDK_STRUCTURE_MASK); // Needed ?
   g_signal_connect(G_OBJECT(sc_draw_area), "expose_event",
@@ -389,7 +390,7 @@ static void create_mixer_frame(GtkWidget *box, int stream)
                   #endif  
                   &mixer_volume_scales[stream - 1][1], GTK_POS_RIGHT,
                   (channel_group_modulus==1) ? FALSE : ((stream - 1) % channel_group_modulus));
-  g_signal_connect(G_OBJECT(sc_draw_area), "size-request",
+  g_signal_connect(G_OBJECT(sc_draw_area), "size-request",   
                     G_CALLBACK (scale_size_req_handler), (gpointer)&mixer_volume_scales[stream - 1][1]);
   //gtk_widget_set_events(sc_draw_area, GDK_STRUCTURE_MASK); // Needed ?
   g_signal_connect(G_OBJECT(sc_draw_area), "expose_event",
@@ -1641,14 +1642,14 @@ static void create_about(GtkWidget *main, GtkWidget *notebook, int page)
 
 	char temp_text[1024];
 	sprintf(temp_text, 
-		"<span size=\"large\">Envy24 Control Utility ( %s )</span>\n\n\
+		"<span size=\"large\">Envy24 Control Utility ( %s %s)</span>\n\n\
 <span size=\"medium\">A GTK Tool for Envy24 PCI Audio Chip</span>\n\n\
 <span size=\"small\">Copyright (C) 2000 by Jaroslav Kysela &lt;perex&#64;perex.cz&gt;</span>\n\
 <span size=\"small\">Copyright (C) 2003 by Søren Wedel Nielsen</span>\n\
 <span size=\"small\">Copyright (C) 2005 by Alan Horstmann</span>\n\
 <span size=\"small\">Copyright (C) 2010 Niels Mayer ( http://nielsmayer.com )</span>\n\
 <span size=\"small\">Copyright (C) 2010 Tim E. Real ( sourceforge: terminator356 )</span>\n\
-", VERSION);
+", VERSION, SVNVERSION);
 	/* Create text as label */
 	label = gtk_label_new("");
 	gtk_label_set_markup(GTK_LABEL(label), temp_text);
@@ -2012,7 +2013,7 @@ static void create_analog_volume(GtkWidget *main, GtkWidget *notebook, int page)
     sc_draw_area = gtk_drawing_area_new();
     gtk_widget_show(sc_draw_area);
     // Handle size requests.
-    g_signal_connect(G_OBJECT(sc_draw_area), "size-request",
+    g_signal_connect(G_OBJECT(sc_draw_area), "size-request",   
                       G_CALLBACK (scale_size_req_handler), (gpointer)&ipga_volume_scales[i]);
     //gtk_widget_set_events(sc_draw_area, GDK_STRUCTURE_MASK); // Needed ?
     // Handle the expose event.
@@ -2444,7 +2445,8 @@ static void usage(void)
 	fprintf(stderr, "\t-M, --midienhanced\tUse an enhanced mapping from midi controller to db slider\n");
 	fprintf(stderr, "\t-w, --window_width\tSet initial window width (try 2,6 or 8; 280,626, or 968)\n");
 	fprintf(stderr, "\t-t, --tall_eq_mixer_heights\tSet taller height mixer displays (1-9)\n");
-	fprintf(stderr, "\t-n, --no_scale_mark\tDisable scale marks, which may be incorrect on certain cards (?), or whose Gtk-detent at the mark position may be annoying\n");
+	fprintf(stderr, "\t-n, --no_scale_mark\tDisable scale marks, which may be incorrect on certain cards (?),\n\t\t or whose Gtk-detent at the mark position may be annoying\n");
+	fprintf(stderr, "\n\tThe program 'alsactl' is automatically found and used.\n\tEnvironment variable ALSACTL_PROG overrides its location.\n");
 }
 
 /* NPM for efficiency&power-savings, replaced multiple 40ms&100ms timeouts

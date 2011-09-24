@@ -186,12 +186,27 @@ void scale_add_analog_marks(SliderScale     *sl_scale,
   if((dbminl % 600) != 0)
     dbminl += 600;
   
+  // 09/23/2011 TER. Crashes due to too many marks. Seems db range has now changed such that
+  //  a very low value means -infinity. snd_ctl_get_dB_range returned a dbminl of -9999999, 
+  //  which gives 16666 marks! So put some kind of limits: 
+  if(dbminl < -12000) // Enough for say ten marks, down to -120db?
+    dbminl = -12000;
+  //if(dbmaxl > 6000) 
+  //  dbmaxl = 6000;
+  
   long i;
   long ival;
+  long lastival;
+  long first = 1;
   for(i = dbminl; i <= dbmaxl; i+= 600)
   {
     if(snd_ctl_convert_from_dB(ctl, elem_id, i, &ival, 0) < 0)
       continue;
+    
+    if(!first && ival == lastival)  // Keep going until we find a change.
+      continue;
+    first = 0;
+    lastival = ival;
     
     if(draw_legend_p)
     {  
@@ -202,7 +217,10 @@ void scale_add_analog_marks(SliderScale     *sl_scale,
         col = "green";
       else 
         col = "blue";
-      sprintf(str_tmp, "<span color='%s' size='x-small'>%+d</span>", col, i/100);
+      if(i <= -12000) // Say <= -120db = -infinity?
+        sprintf(str_tmp, "<span color='%s' size='x-small'>~</span>", col);
+      else
+        sprintf(str_tmp, "<span color='%s' size='x-small'>%+ld</span>", col, i/100);
     }
     //printf("scale_add_analog_marks i:%d max:%d ival:%d\n", i, max, ival);
     
@@ -217,7 +235,10 @@ void scale_add_mark(SliderScale     *sl_scale,
 {
   ScaleMark *mark = g_new(ScaleMark, 1);
   mark->value = value;
-  mark->markup = g_strdup(markup);
+  if(markup) 
+    mark->markup = g_strdup(markup);
+  else
+    mark->markup = NULL;
   mark->position = position;
   sl_scale->marks = g_slist_prepend(sl_scale->marks, mark);
 }
