@@ -39,7 +39,7 @@ extern int input_channels, output_channels, pcm_output_channels, spdif_channels,
 
 static int is_active(GtkWidget *widget)
 {
-	return GTK_TOGGLE_BUTTON(widget)->active ? 1 : 0;
+	return gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)) ? 1 : 0;
 }
 
 void mixer_update_stream(int stream, int vol_flag, int sw_flag)

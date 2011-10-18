@@ -68,20 +68,20 @@ Miscellaneous cards can have same profile names - thats no problem.
 One card with equal profile names is also no problem if you use profile number for searching.
 If you use profile name for searching you will allways get the least profile number with this profile name.
 
-Profiles management in envy24control
+Profiles management in mudita24
 ====================================
 
-In envy24control you can find a new map named "Profiles".
+In mudita24 you can find a new map named "Profiles".
 In this map you can store 8 profiles for every envy24 card.
 You can change/give name by activating this profile and then click in the name entry.
 You can only change the name for the active profile.
 If all settings in the active profile are done you can save settings by clicking button "Save active profile".
-Error messages will only displayed on stderr in the text window if you start envy24control from xterm.
+Error messages will only displayed on stderr in the text window if you start mudita24 from xterm.
 
 To activate a profile click only the profile button.
 
-You can start envy24control with given profiles file and a default profile. if a default profile is given
-after initialisation of envy24control this profile will be activated.
+You can start mudita24 with given profiles file and a default profile. if a default profile is given
+after initialisation of mudita24 this profile will be activated.
 Default profile can be given by profile number or profile name.
 The accuracy of discrimination works in the following way:
 	- if the given default profile contains a letter -> profile name
@@ -91,11 +91,12 @@ The accuracy of discrimination works in the following way:
 Profile names should have at least one letter.
 
 For "Delete card from profiles" and equal profile names read above.
-One card with equal names is only a problem if you start envy24control with default profile name. You activate
+One card with equal names is only a problem if you start mudita24 with default profile name. You activate
 allways the profile with the least profile number with this profile name.
 
 Copyright
 =========
 
 Copyright Dirk Kalis<dirk.kalis@t-online.de>
+Modified for mudita24 (C) Copyright 2011 Tim E. Real (terminator356 on sourceforge).
 This is free and can be distributed under GPL.

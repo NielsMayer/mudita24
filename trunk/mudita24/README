@@ -1,25 +1,27 @@
-envy24control - Control tool for Envy24 (ice1712) based soundcards
+mudita24 - Control tool for Envy24 (ice1712) based soundcards
+           Based on envy24control found in ALSA.
 
 Needs:
-	ALSA, GTK+, an Envy24-based soundcard
+	ALSA-1.0.0 or later, GTK+-2.20 or later, an Envy24-based soundcard
 
-To build (from unpacked tarball):
-	./configure
-
-(Note: Envy24control versions > 1.0 (aka "mudita24") expect recent versions
- of Gtk2 as the GtkScale markers used on the mixer/ADC/DAC sliders have
- existed only since Gtk version 2.16.  Do not use version 0.6.0's configure
- option "-with-gtk2=no" and the accompanying file configure.in-gtk1.)
+To build:
+	cmake
+		To change the default installation location (/usr/local) add:
+		  -DCMAKE_INSTALL_PREFIX=install_location
+		To change the default build type (none, CMAKE_C_FLAGS used) add:
+		  -DCMAKE_BUILD_TYPE=<build_type>
+		 where <build_type> is Debug, Release, RelWithDebInfo or MinSizeRel.
 
 	make
 	su -c 'make install'
+or
+	sudo make install
 
-To build (from GIT):
-	./gitcompile
-	su -c 'make install'
+
+The program 'alsactl' is automatically found and used for storing settings.
+Environment variable ALSACTL_PROG overrides its location.
 
 --------------------
-
 Notes on the Envy24's hardware Digital Mixer and hardware Metering,
 by Niels Mayer ( http://nielsmayer.com ):
 --------------------

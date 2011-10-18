@@ -2432,7 +2432,7 @@ static void create_blank(GtkWidget *main, GtkWidget *notebook, int page)
 
 static void usage(void)
 {
-	fprintf(stderr, "usage: envy24control [-c card#] [-D control-name] [-o num-outputs] [-i num-inputs] [-p num-pcm-outputs] [-s num-spdif-in/outs] [-v] [-f profiles-file] [profile name|profile id] [-m channel-num] [-w initial-window-width] [-t height-num] [-n]\n");
+	fprintf(stderr, "usage: mudita24 [-c card#] [-D control-name] [-o num-outputs] [-i num-inputs] [-p num-pcm-outputs] [-s num-spdif-in/outs] [-v] [-f profiles-file] [profile name|profile id] [-m channel-num] [-w initial-window-width] [-t height-num] [-n]\n");
 	fprintf(stderr, "\t-c, --card\tAlsa card number to control\n");
 	fprintf(stderr, "\t-D, --device\tcontrol-name\n");
 	fprintf(stderr, "\t-o, --outputs\tLimit number of analog line outputs to display\n");
@@ -2543,7 +2543,7 @@ int main(int argc, char **argv)
 			if (index(optarg, ':')) { /* NPM: handle e.g. optarg == "hw:M66" */
 			    card_number = snd_card_get_index(strchr(optarg, ':') + sizeof(char));
 			    if (card_number < 0) {
-			      fprintf(stderr, "envy24control: invalid ALSA audio device, invalid index or name for card: %s\n", optarg);
+			      fprintf(stderr, "mudita24: invalid ALSA audio device, invalid index or name for card: %s\n", optarg);
 			      exit(1);
 			    }
 			  }
@@ -2559,7 +2559,7 @@ int main(int argc, char **argv)
 		 */
 			card_number = snd_card_get_index(optarg);
 			if (card_number < 0) { /* NPM: code orig from alsa-utils/alsamixer/cli.c */
-				fprintf(stderr, "envy24control: invalid ALSA index or name for audio card: %s\n", optarg);
+				fprintf(stderr, "mudita24: invalid ALSA index or name for audio card: %s\n", optarg);
 				exit(1);
 			}
 			sprintf(tmpname, "hw:%d", card_number); /* e.g. "hw:M66" for arg "-cM66" passed to snd_ctl_open() below */
@@ -2571,7 +2571,7 @@ int main(int argc, char **argv)
 		case 'i':
 			input_channels = atoi(optarg);
 			if (input_channels < 0 || input_channels > MAX_INPUT_CHANNELS) {
-				fprintf(stderr, "envy24control: must have 0-%i inputs\n", MAX_INPUT_CHANNELS);
+				fprintf(stderr, "mudita24: must have 0-%i inputs\n", MAX_INPUT_CHANNELS);
 				exit(1);
 			}
 			input_channels_set = 1;
@@ -2579,7 +2579,7 @@ int main(int argc, char **argv)
 		case 'm':
 			midi_channel = atoi(optarg);
 			if (midi_channel < 1 || midi_channel > 16) {
-				fprintf(stderr, "envy24control: invalid midi channel number %i\n", midi_channel);
+				fprintf(stderr, "mudita24: invalid midi channel number %i\n", midi_channel);
 				exit(1);
 			}
 			--midi_channel;
@@ -2588,7 +2588,7 @@ int main(int argc, char **argv)
 		case 'o':
 			output_channels = atoi(optarg);
 			if (output_channels < 0 || output_channels > MAX_OUTPUT_CHANNELS) {
-				fprintf(stderr, "envy24control: must have 0-%i outputs\n", MAX_OUTPUT_CHANNELS);
+				fprintf(stderr, "mudita24: must have 0-%i outputs\n", MAX_OUTPUT_CHANNELS);
 				exit(1);
 			}
 			output_channels_set = 1;
@@ -2596,7 +2596,7 @@ int main(int argc, char **argv)
 		case 'p':
 			pcm_output_channels = atoi(optarg);
 			if (pcm_output_channels < 0 || pcm_output_channels > MAX_PCM_OUTPUT_CHANNELS) {
-				fprintf(stderr, "envy24control: must have 0-%i pcm outputs\n", MAX_PCM_OUTPUT_CHANNELS);
+				fprintf(stderr, "mudita24: must have 0-%i pcm outputs\n", MAX_PCM_OUTPUT_CHANNELS);
 				exit(1);
 			}
 			pcm_output_channels_set = 1;
@@ -2604,7 +2604,7 @@ int main(int argc, char **argv)
 		case 's':
 			spdif_channels = atoi(optarg);
 			if (spdif_channels < 0 || spdif_channels > MAX_SPDIF_CHANNELS) {
-				fprintf(stderr, "envy24control: must have 0-%i spdifs\n", MAX_SPDIF_CHANNELS);
+				fprintf(stderr, "mudita24: must have 0-%i spdifs\n", MAX_SPDIF_CHANNELS);
 				exit(1);
 			}
 			break;
@@ -2638,14 +2638,14 @@ int main(int argc, char **argv)
 		case 'b':	/* NPM */
 		  meter_bg = (GdkColor *)g_malloc(sizeof(GdkColor)); /* free()'d on exit() */
 		  if (!gdk_color_parse(optarg, meter_bg)) { 
-		    fprintf(stderr, "envy24control: unable to parse arguments --bg_color '%s'\n", optarg);
+		    fprintf(stderr, "mudita24: unable to parse arguments --bg_color '%s'\n", optarg);
 		    exit(1);
 		  }
 		  break;
 		case 'l':	/* NPM */
 		  meter_fg = (GdkColor *)g_malloc(sizeof(GdkColor)); /* free()'d on exit() */
 		  if (!gdk_color_parse(optarg, meter_fg)) {
-		    fprintf(stderr, "envy24control: unable to parse arguments --lights_color '%s'\n", optarg);
+		    fprintf(stderr, "mudita24: unable to parse arguments --lights_color '%s'\n", optarg);
 		    exit(1);
 		  }
 		  break;
