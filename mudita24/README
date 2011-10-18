@@ -10,7 +10,7 @@ NOTE: This is a legacy version with deprecated support for very old GTK+ version
 -------------------------------------------------------------------------
 
 To build:
-	cmake
+	cmake . (That's cmake 'dot')
 		To change the default installation location (/usr/local) add:
 		  -DCMAKE_INSTALL_PREFIX=install_location
 		To change the default build type (none, CMAKE_C_FLAGS used) add:
