@@ -426,7 +426,7 @@ static void levelmeters_init_fg(GtkWidget* widget, GdkGC *gc) {
     meter_fg = (GdkColor *)g_malloc(sizeof(GdkColor)); /* free()'d on exit() */
     if (!gdk_color_parse("#1e90ff", meter_fg)) { /* "dodgerblue" per http://en.wikipedia.org/wiki/X11_color_names */
       free((void*) meter_fg); /* if for some impossible reason above fails, continue on valiantly */
-      meter_fg = &(widget->style->text_aa[GTK_STATE_ACTIVE]); /* should never happen, but this would pick up color from existing gtk style w/o needing any addl color allocs */
+      meter_fg = &(gtk_widget_get_style(widget)->text_aa[GTK_STATE_ACTIVE]); /* should never happen, but this would pick up color from existing gtk style w/o needing any addl color allocs */
     }
     else 
       gdk_color_alloc(gdk_colormap_get_system(), meter_fg);
@@ -442,7 +442,7 @@ static void levelmeters_init_bg(GtkWidget* widget, GdkGC *gc) {
     meter_bg = (GdkColor *)g_malloc(sizeof(GdkColor)); /* free()'d on exit() */
     if (!gdk_color_parse("#304050", meter_bg)) { /* a dark background color */
       free((void*) meter_bg); /* if for some impossible reason above fails, continue on valiantly */
-      meter_bg = &(widget->style->text_aa[GTK_STATE_PRELIGHT]); /* should never happen, but this would pick up color from existing gtk style w/o needing any addl color allocs */
+      meter_bg = &(gtk_widget_get_style(widget)->text_aa[GTK_STATE_PRELIGHT]); /* should never happen, but this would pick up color from existing gtk style w/o needing any addl color allocs */
     }
     else 
       gdk_color_alloc(gdk_colormap_get_system(), meter_bg);
@@ -452,12 +452,13 @@ static void levelmeters_init_bg(GtkWidget* widget, GdkGC *gc) {
 
 gint level_meters_configure_event(GtkWidget *widget, GdkEventConfigure *event) {
 	int idx = get_index(gtk_widget_get_name(widget));
-
+	GtkAllocation allocation;
+	gtk_widget_get_allocation(widget, &allocation);
 	if (pixmap[idx] != NULL)
 		gdk_pixmap_unref(pixmap[idx]);
-	pixmap[idx] = gdk_pixmap_new(widget->window,
-				     widget->allocation.width,
-				     widget->allocation.height,
+	pixmap[idx] = gdk_pixmap_new(gtk_widget_get_window(widget),
+				     allocation.width,
+				     allocation.height,
 				     -1);
 	penWhiteLight[idx] = get_pen(idx, 0xffff, 0xffff, 0xffff);
 	penGreenLight[idx] = get_pen(idx, 0, 0xffff, 0);
@@ -476,11 +477,11 @@ gint level_meters_configure_event(GtkWidget *widget, GdkEventConfigure *event) {
 	penRedLight[idx] = get_pen(idx, 0xffff, 0, 0);
 
 	gdk_draw_rectangle(pixmap[idx],
-			   widget->style->black_gc,
+			   gtk_widget_get_style(widget)->black_gc,
 			   TRUE,
 			   0, 0,
-			   widget->allocation.width,
-			   widget->allocation.height);
+			   allocation.width,
+			   allocation.height);
 
 	/* NPM: ensure redraw_meters() below does a full refresh, per meter  */
 	if (idx == 0) {		/* "if stereo" -- special case for L/R output pair of digital mixer */
@@ -499,19 +500,21 @@ gint level_meters_configure_event(GtkWidget *widget, GdkEventConfigure *event) {
 	  peak_changed[idx-1]       = RESET;
 	}
 	
-	// g_print("configure: %i:%i\n", widget->allocation.width, widget->allocation.height);
-	redraw_meters(idx, widget->allocation.width, widget->allocation.height, 0, 0);
+	// g_print("configure: %i:%i\n", allocation.width, allocation.height);
+	redraw_meters(idx, allocation.width, allocation.height, 0, 0);
 	return TRUE;
 }
 
 gint level_meters_expose_event(GtkWidget *widget, GdkEventExpose *event) {
 	int idx = get_index(gtk_widget_get_name(widget));
 	int l1, l2;
+	GtkAllocation allocation;
+	gtk_widget_get_allocation(widget, &allocation);
 	
 	get_levels(idx, &l1, &l2);
-	redraw_meters(idx, widget->allocation.width, widget->allocation.height, l1, l2);
-	gdk_draw_pixmap(widget->window,
-			widget->style->black_gc,
+	redraw_meters(idx, allocation.width, allocation.height, l1, l2);
+	gdk_draw_pixmap(gtk_widget_get_window(widget),
+			gtk_widget_get_style(widget)->black_gc,
 			pixmap[idx],
 			event->area.x, event->area.y,
 			event->area.x, event->area.y,
@@ -522,25 +525,27 @@ gint level_meters_expose_event(GtkWidget *widget, GdkEventExpose *event) {
 gint level_meters_timeout_callback(gpointer data) {
 	GtkWidget *widget;
 	int idx, l1, l2;
+	GtkAllocation allocation;
 
 	update_peak_switch();
 	for (idx = 0; idx <= pcm_output_channels; idx++) {
 		get_levels(idx, &l1, &l2);
 		widget = idx == 0 ? mixer_mix_drawing : mixer_drawing[idx-1];
-		if (GTK_WIDGET_VISIBLE(widget) && (pixmap[idx] != NULL)) {
-			redraw_meters(idx, widget->allocation.width, widget->allocation.height, l1, l2);
-			gdk_draw_pixmap(widget->window,
-					widget->style->black_gc,
+		if (gtk_widget_get_visible(widget) && (pixmap[idx] != NULL)) {
+			gtk_widget_get_allocation(widget, &allocation);
+			redraw_meters(idx, allocation.width, allocation.height, l1, l2);
+			gdk_draw_pixmap(gtk_widget_get_window(widget),
+					gtk_widget_get_style(widget)->black_gc,
 					pixmap[idx],
 					0, 0,
 					0, 0,
-					widget->allocation.width, widget->allocation.height);
+					allocation.width, allocation.height);
 		}
 		/* NPM: both cases below are special-case hack to get
 		   "Analog Volume" PCM peak levels updating correctly,
 		   should "Analog Volume" panel be selected before "Monitor
 		   PCM outs" panel. In that situation,
-		   "(GTK_WIDGET_VISIBLE(widget) && (pixmap[idx] != NULL))"
+		   "(gtk_widget_get_visible(widget) && (pixmap[idx] != NULL))"
 		   fails as level_meters_configure_event() hasn't been
 		   called yet (it gets called when user selects "Monitor
 		   PCM outs" panel).
@@ -582,42 +587,45 @@ gint level_meters_timeout_callback(gpointer data) {
 		for (idx = MAX_PCM_OUTPUT_CHANNELS + 1; idx <= MAX_OUTPUT_CHANNELS + spdif_channels; idx++) {
 			get_levels(idx, &l1, &l2);
 			widget = idx == 0 ? mixer_mix_drawing : mixer_drawing[idx-1];
-			if (GTK_WIDGET_VISIBLE(widget) && (pixmap[idx] != NULL)) {
-				redraw_meters(idx, widget->allocation.width, widget->allocation.height, l1, l2);
-				gdk_draw_pixmap(widget->window,
-						widget->style->black_gc,
+			if (gtk_widget_get_visible(widget) && (pixmap[idx] != NULL)) {
+				gtk_widget_get_allocation(widget, &allocation);
+				redraw_meters(idx, allocation.width, allocation.height, l1, l2);
+				gdk_draw_pixmap(gtk_widget_get_window(widget),
+						gtk_widget_get_style(widget)->black_gc,
 						pixmap[idx],
 						0, 0,
 						0, 0,
-						widget->allocation.width, widget->allocation.height);
+						allocation.width, allocation.height);
 			}
 		}
 	}
 	for (idx = MAX_PCM_OUTPUT_CHANNELS + MAX_SPDIF_CHANNELS + 1; idx <= input_channels + MAX_PCM_OUTPUT_CHANNELS + MAX_SPDIF_CHANNELS; idx++) {
 		get_levels(idx, &l1, &l2);
 		widget = idx == 0 ? mixer_mix_drawing : mixer_drawing[idx-1];
-		if (GTK_WIDGET_VISIBLE(widget) && (pixmap[idx] != NULL)) {
-			redraw_meters(idx, widget->allocation.width, widget->allocation.height, l1, l2);
-			gdk_draw_pixmap(widget->window,
-					widget->style->black_gc,
+		if (gtk_widget_get_visible(widget) && (pixmap[idx] != NULL)) {
+			gtk_widget_get_allocation(widget, &allocation);
+			redraw_meters(idx, allocation.width, allocation.height, l1, l2);
+			gdk_draw_pixmap(gtk_widget_get_window(widget),
+					gtk_widget_get_style(widget)->black_gc,
 					pixmap[idx],
 					0, 0,
 					0, 0,
-					widget->allocation.width, widget->allocation.height);
+					allocation.width, allocation.height);
 		}
 	}
 	for (idx = MAX_PCM_OUTPUT_CHANNELS + MAX_SPDIF_CHANNELS + MAX_INPUT_CHANNELS + 1; \
 		    idx <= spdif_channels + MAX_PCM_OUTPUT_CHANNELS + MAX_SPDIF_CHANNELS + MAX_INPUT_CHANNELS; idx++) {
 		get_levels(idx, &l1, &l2);
 		widget = idx == 0 ? mixer_mix_drawing : mixer_drawing[idx-1];
-		if (GTK_WIDGET_VISIBLE(widget) && (pixmap[idx] != NULL)) {
-			redraw_meters(idx, widget->allocation.width, widget->allocation.height, l1, l2);
-			gdk_draw_pixmap(widget->window,
-					widget->style->black_gc,
+		if (gtk_widget_get_visible(widget) && (pixmap[idx] != NULL)) {
+			gtk_widget_get_allocation(widget, &allocation);
+			redraw_meters(idx, allocation.width, allocation.height, l1, l2);
+			gdk_draw_pixmap(gtk_widget_get_window(widget),
+					gtk_widget_get_style(widget)->black_gc,
 					pixmap[idx],
 					0, 0,
 					0, 0,
-					widget->allocation.width, widget->allocation.height);
+					allocation.width, allocation.height);
 		}
 	}
 	return TRUE;

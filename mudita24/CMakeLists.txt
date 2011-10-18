@@ -21,9 +21,9 @@ FIND_PROGRAM(SVNVER svnversion)
 if (${SVNVER} STREQUAL "SVNVER-NOTFOUND")
       SET (mudita24_SVNVER 0)
 else (${SVNVER} STREQUAL "SVNVER-NOTFOUND")
-      EXEC_PROGRAM( svnversion
-            ARGS ${PROJECT_SOURCE_DIR}
-            OUTPUT_VARIABLE mudita24_SVNVER )
+      EXECUTE_PROCESS( COMMAND svnversion ${PROJECT_SOURCE_DIR}
+                       OUTPUT_VARIABLE mudita24_SVNVER 
+                       OUTPUT_STRIP_TRAILING_WHITESPACE )
 endif (${SVNVER} STREQUAL "SVNVER-NOTFOUND")
 
 ## Top documentation dir
@@ -35,8 +35,8 @@ ENDIF(NOT DEFINED mudita24_DOC_DIR)
 # This didn't work. GTK2_INCLUDE_DIRS was blank.
 #find_package(GTK2 2.0 REQUIRED gtk)
 
+PKG_CHECK_MODULES(GTK2 REQUIRED gtk+-2.0>=2.20)
 # TODO What's the minimum required?
-PKG_CHECK_MODULES(GTK2 REQUIRED gtk+-2.0)
 PKG_CHECK_MODULES(ALSA REQUIRED alsa>=1.0.0)
 
 # TODO check for log10
@@ -80,6 +80,16 @@ set (mudita24_source_files
 )
 
 add_executable( mudita24 ${mudita24_source_files} )
+
+##
+## Compilation flags 
+## Oct 18, 2011: Suggested by James Morris along with supplied patch:                                               
+##   -DGTK_DISABLE_DEPRECATED -DGDK_DISABLE_DEPRECATED -DGSEAL_ENABLE 
+## Incomplete changes to source for now, causes errors.
+#
+# set_target_properties( mudita24
+#      PROPERTIES COMPILE_FLAGS "-DGTK_DISABLE_DEPRECATED -DGDK_DISABLE_DEPRECATED -DGSEAL_ENABLE"
+#      )
 
 target_link_libraries(mudita24
       ${ALSA_LIBRARIES}

@@ -59,4 +59,13 @@ Jaroslav Kysela <perex@perex.cz>
  4) Fixed serious fatal X error: height too big. Was far too many markings, brought down 
   the system, due to lowest alsa db value now returing -9999999. Installed some limits.   
 Copyright (C) 2011 Tim E. Real (Sourceforge username: terminator356)
-   
+
+(October 18 2011) TER: 
+Moved current code into branches/attic. This branch contains legacy deprecated code for
+ supporting very old GTK+ versions.
+In trunk: 
+Applied patch by James Morris to modernize and remove some deprecated code. 
+TODO: Apply his suggested compiler flags to remove deprecated code. The code needs
+ some more fixing before those flags will allow successful compilation.
+Removed all support for very old GTK+ versions.
+Copyright (C) 2011 Tim E. Real (terminator356 on sourceforge)

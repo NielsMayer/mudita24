@@ -245,12 +245,6 @@ void scale_add_mark(SliderScale     *sl_scale,
 }
 
 void scale_add_marks(GtkScale        *scale, 
-#ifndef HAVE_GTK_24
-                     gdouble          min,      
-                     gdouble          max,      
-                     gdouble          step_inc, 
-                     gdouble          page_inc, 
-#endif                      
                      SliderScale     *sl_scale,
                      GtkPositionType  position, 
                      gboolean         draw_legend_p) 
@@ -259,13 +253,6 @@ void scale_add_marks(GtkScale        *scale,
   {
     case MIXER_STRIP:
       sl_scale->scale    = scale;
-#ifndef HAVE_GTK_24
-      sl_scale->min      = min;
-      sl_scale->max      = max;
-      sl_scale->step_inc = step_inc;
-      sl_scale->page_inc = page_inc;
-#endif                      
-      
       if(no_scale_marks) 
         return;
   
@@ -297,12 +284,6 @@ void scale_add_marks(GtkScale        *scale,
     case ADC_STRIP:
     case IPGA_STRIP:
       sl_scale->scale = scale;
-#ifndef HAVE_GTK_24
-      sl_scale->min      = min;
-      sl_scale->max      = max;
-      sl_scale->step_inc = step_inc;
-      sl_scale->page_inc = page_inc;
-#endif      
       if(no_scale_marks) 
         return;
       scale_add_analog_marks(sl_scale, position, draw_legend_p);
@@ -450,7 +431,7 @@ gboolean scale_expose_handler(GtkWidget *widget, GdkEventExpose *event, gpointer
   
   GtkStateType state_type;
   state_type = GTK_STATE_NORMAL;
-  if(!GTK_WIDGET_IS_SENSITIVE(widget))
+  if(!gtk_widget_is_sensitive(widget))
     state_type = GTK_STATE_INSENSITIVE;
 
   if(sscale->marks)
@@ -466,13 +447,8 @@ gboolean scale_expose_handler(GtkWidget *widget, GdkEventExpose *event, gpointer
     if(!adj)
       return FALSE;
     
-#ifdef HAVE_GTK_24
-    gdouble min = adj->lower;
-    gdouble max = adj->upper;
-#else    
-    gdouble min = sscale->min;
-    gdouble max = sscale->max;
-#endif
+    gdouble min = gtk_adjustment_get_lower(adj);
+    gdouble max = gtk_adjustment_get_upper(adj);
 
     gint sl_w;
     gtk_widget_style_get(GTK_WIDGET(scale), "slider-length", &sl_w, NULL);
@@ -573,14 +549,8 @@ gboolean scale_btpress_handler(GtkWidget *widget, GdkEventButton *event, gpointe
   return TRUE;
 }
 
-#ifdef HAVE_GTK_26
-
-//       >= gtk+ 2.6
-
 //
 // Handle all types of slider scroll changes. 
-// Only used if gtk+ 2.6 or higher, otherwise slider_key_handler is used 
-//  and slider trough left-click paging snap-to-marks will not be available.
 gboolean slider_change_value_handler(GtkRange     *range,
                                      GtkScrollType scroll,
                                      gdouble       value,
@@ -592,10 +562,10 @@ gboolean slider_change_value_handler(GtkRange     *range,
     return FALSE;
   
   gboolean is_pg = TRUE;
-  gdouble min   = adj->lower;          // gtk+ 2.4
-  gdouble max   = adj->upper;
-  gdouble inc   = adj->page_increment;
-  gdouble curv  = adj->value;  
+  gdouble min   = gtk_adjustment_get_lower(adj);
+  gdouble max   = gtk_adjustment_get_upper(adj);
+  gdouble inc   = gtk_adjustment_get_page_increment(adj);
+  gdouble curv  = gtk_adjustment_get_value(adj);
   
   // Tested, GtkScrollType values observed:
   // GTK_SCROLL_NONE
@@ -728,115 +698,6 @@ gboolean slider_change_value_handler(GtkRange     *range,
   return TRUE;
 }
 
-#else  
-
-//       < gtk+ 2.6
-
-//
-// Event handler to override slider KB page up/down
-//  and force sliders to snap to their page stop positions.
-// Only used if lower than gtk+ 2.6, otherwise slider_change_value_handler is used.
-// Slider trough left-click paging snap-to-marker will not be available.
-gboolean slider_key_handler(GtkScale *widget, GdkEventKey *event, gpointer data)
-{
-  SliderScale* sscale = (SliderScale*)data;
-  GtkRange *rng = GTK_RANGE(widget);
-  GtkAdjustment *adj = gtk_range_get_adjustment(rng);
-  if(!adj)
-    return FALSE;
-
-#ifdef HAVE_GTK_24
-  gdouble min   = adj->lower; 
-  gdouble max   = adj->upper;
-  gdouble inc   = adj->page_increment;
-#else
-  gdouble min = sscale->min;
-  gdouble max = sscale->max;
-  gdouble inc = sscale->page_inc;
-#endif
-
-  gboolean up = 1;
-  gboolean is_pg = TRUE;
-  switch(event->keyval)
-  {
-    case GDK_Page_Up:
-    break;
-    case GDK_Page_Down:
-      up = FALSE;
-    break;
-    case GDK_Up:
-#ifdef HAVE_GTK_24
-      inc = adj->step_increment;
-#else      
-      inc = sscale->step_inc;
-#endif      
-      is_pg = FALSE;
-    break;
-    case GDK_Down:
-#ifdef HAVE_GTK_24
-      inc = adj->step_increment;
-#else      
-      inc = sscale->step_inc;
-#endif      
-      up = FALSE;
-      is_pg = FALSE;
-    break;  
-    default:
-      return FALSE;
-  }
-  
-  gdouble curv  = gtk_adjustment_get_value(adj);
-  gdouble newv = up ? min : max;
-  
-  // If it's a page, and we want scale marks, and there are actually some marks, use them...
-  if(is_pg && !no_scale_marks && sscale->marks)
-  {  
-    GSList *m;
-    for(m = sscale->marks; m; m = m->next)
-    {
-      ScaleMark *mark = m->data;
-      if(up)
-      {  
-        if(mark->value < curv && mark->value > newv)
-          newv = mark->value;
-      }  
-      else
-      if(mark->value > curv && mark->value < newv)
-        newv = mark->value;
-    }
-    if(curv != newv)
-      gtk_adjustment_set_value(adj, newv);
-  }
-  else
-  // ...it's a step, or scale marks not wanted, or no scale marks. Use slider properties instead.
-  {  
-    //if(inc == 0.0)
-    //  return FALSE;
-    
-    gdouble pg = (curv - min) / inc;
-    gint pgint = (gint)pg;
-    // No, let the clamp handle over ranges
-    //if(pgint < 0)
-    //  pgint = 0;
-    //else if((pgint * pginc) >= 
-      
-    gdouble newv = pgint * inc + min;
-    if(up)
-    {
-      // Page up. Are we already right on the page stop? Go to prev page.
-      if(curv == newv)
-        newv -= inc;
-    }
-    else
-      // Page down. Go to next page no matter what.
-      newv += inc;
-      
-    gtk_adjustment_set_value(adj, newv);
-  }
-  return TRUE;
-}
-#endif
-
 void dac_volume_update(int idx)
 {
 	snd_ctl_elem_value_t *val;
@@ -887,13 +748,8 @@ void adc_volume_update(int idx)
 		//  gtk_adjustment_set_value(GTK_ADJUSTMENT(av_ipga_volume_adj[idx]),
 		//			 -0);
     GtkAdjustment *adj = GTK_ADJUSTMENT(av_ipga_volume_adj[idx]);
-#ifdef HAVE_GTK_24
-    if((gint)adj->value != adj->upper)
-      gtk_adjustment_set_value(adj, adj->upper);
-#else
-    if((gint)gtk_adjustment_get_value(adj) != ipga_volume_scales[idx].max)
-      gtk_adjustment_set_value(adj, ipga_volume_scales[idx].max);
-#endif
+    if((gint)adj->value != gtk_adjustment_get_upper(adj))
+      gtk_adjustment_set_value(adj, gtk_adjustment_get_upper(adj));
   }         
 }
 
@@ -931,13 +787,8 @@ void ipga_volume_update(int idx)
 		//  gtk_adjustment_set_value(GTK_ADJUSTMENT(av_adc_volume_adj[idx]),
 		//			 -adc_max);
     GtkAdjustment *adj = GTK_ADJUSTMENT(av_adc_volume_adj[idx]);
-#ifdef HAVE_GTK_24
-    if((gint)adj->value != adj->lower)
-      gtk_adjustment_set_value(adj, adj->lower);
-#else
-    if((gint)gtk_adjustment_get_value(adj) != adc_volume_scales[idx].min)
-      gtk_adjustment_set_value(adj, adc_volume_scales[idx].min);
-#endif
+    if((gint)adj->value != gtk_adjustment_get_lower(adj))
+      gtk_adjustment_set_value(adj, gtk_adjustment_get_lower(adj));
   }         
 }
 

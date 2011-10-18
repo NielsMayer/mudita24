@@ -108,14 +108,6 @@
 // #define MIN_METERING_LEVEL_DB -48.164799306 /* == 20*log10(1/(MAX_METERING_LEVEL+1)) */
 // #define MIN_METERING_LEVEL_DB −48.130803609 /* == 20*log10(1/MAX_METERING_LEVEL)     */
 
-// TER:
-#if GTK_CHECK_VERSION(2,4,0)
-  #define HAVE_GTK_24
-#endif
-#if GTK_CHECK_VERSION(2,6,0)
-  #define HAVE_GTK_26
-#endif
-
 /*
  * NPM: 
  */
@@ -321,12 +313,6 @@ struct _ScaleMark
 struct _SliderScale
 {
   GtkScale *scale;
-#ifndef HAVE_GTK_24
-  gdouble   min;      // Use these, since gtk+ 2.4 is required to read them from GtkAdjustment.
-  gdouble   max;      //
-  gdouble   step_inc; //
-  gdouble   page_inc; //
-#endif  
   StripType type;
   gint      idx;
   GSList   *marks;
@@ -344,12 +330,6 @@ void scale_add_analog_marks(SliderScale     *sl_scale,
                             GtkPositionType  position,
                             gboolean         draw_legend_p);
 void scale_add_marks(GtkScale        *scale, 
-#ifndef HAVE_GTK_24
-                     gdouble          min,      
-                     gdouble          max,      
-                     gdouble          step_inc, 
-                     gdouble          page_inc, 
-#endif                      
                      SliderScale     *sl_scale,
                      GtkPositionType  position, 
                      gboolean         draw_legend_p);
@@ -357,16 +337,10 @@ void clear_all_scale_marks(gboolean init);
 gboolean scale_btpress_handler(GtkWidget *widget, GdkEventButton *event, gpointer data);
 gboolean scale_expose_handler(GtkWidget *widget, GdkEventExpose *event, gpointer data);
 void scale_size_req_handler(GtkWidget *widget, GtkRequisition *requisition, gpointer data);
-#ifdef HAVE_GTK_26
 gboolean slider_change_value_handler(GtkRange     *range,
                                      GtkScrollType scroll,
                                      gdouble       value,
                                      gpointer      data);
-#else                                     
-gboolean slider_key_handler(GtkScale *widget, GdkEventKey *event, gpointer data);
-#endif
-//
-//
 
 void dac_volume_update(int idx);
 void adc_volume_update(int idx);
