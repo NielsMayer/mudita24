@@ -1,0 +1,154 @@
+.TH "envy24control" "1" "30 July 2005" "" ""
+.SH "NAME"
+envy24control \- GUI control tool for Envy24 (ice1712) based
+soundcards, under ALSA.
+
+.SH "SYNOPSIS"
+\fBenvy24control\fP [\fI\-c\fP card\-number] [\fI\-D\fP control\-name]
+[\fI\-o\fP 0\-num DACs max 8] [\fI\-i\fP 0\-num ADCs max 8] [\fI\-p\fP
+0\-8] [\fI\-s\fP 0\-2] [\fI\-f\fP <profiles file name>] [\fI\-v\fP]
+[<profile number>|<profile name>] [\fI\-m\fP midi\-channel] [\fI\-M\fP]
+[\fI\-w\fP window\-width] [\fI\-t\fP 0\-9] [\fI\-n\fP] [\fI\-g\fP 1\-8]
+
+.SH "DESCRIPTION"
+\fBenvy24control\fP allows control of the digital mixer, channel gains and
+other hardware settings for sound cards based on the ice1712 chipset (
+http://alsa.cybermirror.org/manuals/icensemble/envy24.pdf ).  It also
+displays a level meter for each input and output channel and maintains peak
+level indicators.  This utility is preferable to \fBalsamixer(1)\fP for
+those with ice1712-based cards: M-Audio Delta 1010, Delta 1010LT, Delta
+DiO 2496, Delta 66, Delta 44, Delta 410 and Audiophile 2496. TerraTec EWS 88MT,
+EWS 88D, EWX 24/96, DMX 6Fire, Phase 88.  Hoontech SoundTrack DSP 24,
+SoundTrack DSP 24 Value, SoundTrack DSP 24 Media 7.1.  Event Electronics
+EZ8.  Digigram VX442.  Lionstracs, Mediastaton.  Terrasoniq TS 88.  Partial
+support for Roland/Edirol DA-2496.
+.SH "INVOKING"
+\fBenvy24control\fP [\fI\-c\fP card\-number] [\fI\-D\fP control\-name]
+[\fI\-o\fP 0\-num DACs max 8] [\fI\-i\fP 0\-num ADCs max 8] [\fI\-p\fP
+0\-8] [\fI\-s\fP 0\-2] [\fI\-f\fP <profiles file name>] [\fI\-v\fP]
+[<profile number>|<profile name>] [\fI\-m\fP midi\-channel] [\fI\-M\fP]
+[\fI\-w\fP window\-width] [\fI\-t\fP 0\-9] [\fI\-n\fP] [\fI\-g\fP 1\-8]
+.TP 
+If no control\-name is given, then the first sound card is used.
+
+.SS Options
+.TP 
+\fI\-c\fP, \fI\--card\fP
+Use the card specified by card\-number rather than the first card.
+This is equivalent with \fI\-Dhw:n\fP option where \fIn\fP is the card
+number. May also use the card name, e.g. \fI\-cM66\fP .
+.TP 
+\fI\-D\fP, \fI\--device\fP
+Use the card specified by control\-name rather than the first card,
+normally this will be of the form hw:\fIn\fP where \fIn\fP is the sound
+card number (zero\-based). May also use the card name, e.g. \fI\-Dhw:M66\fP .
+This is only needed if you have more than one Envy24\-based card or 
+if your Envy24 card is not configured as the first card in your ALSA driver setup.
+.TP 
+\fI\-o\fP, \fI\--outputs\fP
+Limit number of analog line outputs to display.  Default is the number of
+DACs in the driver specification. Maximum is 8.
+The number of analog output lines can only be reduced from the available
+number of output lines.
+.TP 
+\fI\-i\fP, \fI\--inputs\fP
+Limit number of analog line inputs to display.  Default is the number of
+ADCs in the driver specification. Maximum is 8.
+The number of analog input lines can only be reduced from the available
+number of input lines.
+.TP 
+\fI\-p\fP, \fI\--pcm_outputs\fP
+Limit number of PCM outputs to display.  Default is 8.
+.TP 
+\fI\-s\fP, \fI\--spdif\fP
+Limit number of SPDIF inputs/outputs to display.  Default is 2.
+.TP 
+\fI\-f\fP, \fI\--profiles_file\fP
+File to read/write the alsactl settings.
+If is not given DEFAULT_PROFILERC or for restore if DEFAULT_PROFILERC
+doesn't exists SYS_PROFILERC will be used.
+.TP 
+\fI\-v\fP, \fI\--view_spdif_playback\fP
+View spdif playback channels in the mixer.
+It is not possible to manage something (muting, volume levels).
+It is only to view the levelmeters.
+Default is no view of spdif playback channels in the mixer.
+.TP 
+\fI\-m\fP, \fI\--midichannel\fP
+Use MIDI controller values to control the Faders in the mixer view.
+The application will react to controllers on channel midi\-channel and
+send controllers on this channel when the user moves the GUI sliders.
+.TP 
+\fI\-M\fP, \fI\--midienhanced\fP
+Use an enhanced mapping from midi controller values to db sliders.
+.TP
+\fI\-w\fP, \fI\--window_width\fP
+Specify the initial width of the envy24control window.
+Using window\-width in the range 0\-20 specifies approx number of mixer channels visible.
+Values >20 are interpreted as screen pixels.
+.TP
+\fI\-t\fP, \fI\--tall_equal_mixer_heights\fP
+Using \fI\-t1\fP enlarges the channel mixers to the same height as the digital mixer.
+With values >1 the height of all mixers is increased in stages.
+.TP
+\fI\-n\fP, \fI\--no_scale_mark\fP
+Disable scale marks, which may be incorrect on certain cards (?), or whose
+Gtk-detent at the mark position may be annoying.
+.TP
+\fI\-g\fP, \fI\--channel_group_modulus\fP
+Defaults to '2', which causes the application to pair input and output
+channels labeled scale marks to Left/Right sides - this behavior occurs in
+"Monitor Inputs" "Monitor PCMs" and "Analog Volume" panels. Should this
+behavior be inappropriate for 4, 5.1, 7.1, 8.1 and ambisonic setups: Using
+\fI\-g1\fP causes all channels to look the same. Other values up to the
+card's maximum number of input or output channels may produce layouts
+helpful for grouping channels.
+.TP
+\fI\-l\fP, \fI\--lights_color\fP
+Defaults to 'dodgerblue' or '#1e90ff'. Set to a different color to change
+the foreground color of the meters.
+.TP
+\fI\-b\fP, \fI\--bg_color\fP
+Defaults to '#304050'. Set to a different color to change the background
+color of the meters.
+.SH "SEE ALSO"
+\fB
+alsamixer(1),
+amixer(1),
+gamix(1),
+kmix(1),
+alsamixergui(1),
+alsamixer-qt4(1)
+\fP
+
+.SH "AUTHOR"
+
+\fBenvy24control\fP is originally by Jaroslav Kysela <perex@perex.cz>.
+with layout changes by Søren Wedel Nielsen, and volume control code by
+Takashi Iwai. 
+
+Options \fI\-w\fP and \fI\-t\fP added Alan Horstmann
+<gineera@aspect135.co.uk>.
+
+(Summer 2010) NPM: (1) Implemented "Peak Hold" functionality in meters;
+reimplemented meters to do away with inefficient "faux LED" peak-meter
+display, which causes thousands of rectangles per-second to be drawn,
+individually, for no good reason other than increasing the load. (2)
+Significantly reduced the number of timer interrupts generated by this
+program by slowing down all updates to 10 per second -- previously meters
+updated 25x/second! (3) All volumes are represented as decibels, including
+the 0 to -48dB range of the hardware peak-meters, the 0 -to- -48dB&off
+attenuation for all inputs to the digital mixer, the 0 -to- -63dB
+attenuation of the analog DAC, and the +18 -to- -63dB
+attenuation/amplification of the analog ADC. (4) All gtk "scale" widgets
+have dB legends; the "PageUp" "PageDown" keys allow rapid movement between
+the marked levels, and "UpArrow" and "DownArrow" allow fine-adjustment.
+(5) Added command-line options \fI\--no_scale_mark\fP,
+\fI\--channel_group_modulus\fP, \fI\--lights_color\fP and \fI\--bg_color
+options\fP; fixed \fI\--card\fP and \fI\--device\fP to allow valid ALSA
+card and CTL device names (
+https://bugzilla.redhat.com/show_bug.cgi?id=602900 ).  (6) Add display of
+"Delta IEC958 Input Status" under "Hardware Settings."
+
+This document is by James Tappin <james@xena.uklinux.net>.  Updated by Dirk
+Kalis <dirk.kalis@t\-online.de>. Further updated by Niels Mayer ( http://nielsmayer.com ).
