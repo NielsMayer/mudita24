@@ -5,7 +5,7 @@ Needs:
 	ALSA-1.0.0 or later, GTK+-2.20 or later, an Envy24-based soundcard
 
 To build:
-	cmake
+	cmake . (That's cmake 'dot')
 		To change the default installation location (/usr/local) add:
 		  -DCMAKE_INSTALL_PREFIX=install_location
 		To change the default build type (none, CMAKE_C_FLAGS used) add:
