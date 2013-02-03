@@ -1624,14 +1624,14 @@ static void create_about(GtkWidget *main, GtkWidget *notebook, int page)
 
 	char temp_text[1024];
 	sprintf(temp_text, 
-		"<span size=\"large\">Envy24 Control Utility ( %s %s)</span>\n\n\
+		"<span size=\"large\">Envy24 Control Utility (%s)</span>\n\n\
 <span size=\"medium\">A GTK Tool for Envy24 PCI Audio Chip</span>\n\n\
 <span size=\"small\">Copyright (C) 2000 by Jaroslav Kysela &lt;perex&#64;perex.cz&gt;</span>\n\
 <span size=\"small\">Copyright (C) 2003 by Søren Wedel Nielsen</span>\n\
 <span size=\"small\">Copyright (C) 2005 by Alan Horstmann</span>\n\
 <span size=\"small\">Copyright (C) 2010 Niels Mayer ( http://nielsmayer.com )</span>\n\
 <span size=\"small\">Copyright (C) 2010 - 2011 Tim E. Real ( terminator356 on sourceforge)</span>\n\
-", VERSION, SVNVERSION);
+", VERSION);
 	/* Create text as label */
 	label = gtk_label_new("");
 	gtk_label_set_markup(GTK_LABEL(label), temp_text);
