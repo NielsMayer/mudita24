@@ -2404,7 +2404,7 @@ static void usage(void)
 /* NPM for efficiency&power-savings, replaced multiple 40ms&100ms timeouts
    for each of the callbacks contained here, with a single 100ms one which
    calls gtk_timeout_add(100, (GtkFunction)envy24control_poll, ...) */
-void envy24control_poll() {
+gboolean envy24control_poll() {
   level_meters_timeout_callback(NULL);
   master_clock_status_timeout_callback(NULL);
   internal_clock_status_timeout_callback(NULL);
@@ -2412,6 +2412,7 @@ void envy24control_poll() {
   rate_reset_status_timeout_callback(NULL);
   if (card_has_delta_iec958_input_status)
     iec958_input_status_timeout_callback(NULL); /* NPM */
+  return TRUE;
 }
 
 int main(int argc, char **argv)
