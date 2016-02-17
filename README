@@ -3,87 +3,31 @@ mudita24 -- improved envy24control: ALSA GTK+ GUI control tool for Envy24 (ice17
 Mudita24 - Control Panel for Ice1712 Audio Cards
 
 Mudita24 is a modification of the Linux alsa-tools'
-<A href="http://git.alsa-project.org/?p=alsa-tools.git;a=tree;f=envy24control;hb=HEAD">
-envy24control(1)
-</A>
-: an application controlling the digital mixer, channel gains and other hardware settings for sound cards based on the
-<A href="http://alsa.cybermirror.org/manuals/icensemble/envy24.pdf">
-VIA Ice1712 chipset
-</A>
-aka
-<A href="http://www.via.com.tw/en/products/audio/controllers/envy24/">
-Envy24
-</A>
-. Unlike most ALSA mixer controls, this application displays a level meter for each input and output channel and maintains peak level indicators. This is based on Envy24's hardware peak metering feature.
+http://git.alsa-project.org/?p=alsa-tools.git;a=tree;f=envy24control;hb=HEAD envy24control(1): an application controlling the digital mixer, channel gains and other hardware settings for sound cards based on the VIA Ice1712 chipset aka
+( http://www.via.com.tw/en/products/audio/controllers/envy24/ )
+Envy24. Unlike most ALSA mixer controls, this application displays a level meter for each input and output channel and maintains peak level indicators. This is based on Envy24's hardware peak metering feature.
 
 Mudita24 provides alternate name to avoid confusion with "envy24control 0.6.0" until changes in this version propagate upstream. As balance to the "Envy", this project needed some
-<A href="http://en.wikipedia.org/wiki/Envy#In_philosophy">
-Mudita
-</A>
-"In Buddhism the third of the four divine abidings is mudita, taking joy in the good fortune of another. This virtue is considered the antidote to envy and the opposite of schadenfreude."
+http://en.wikipedia.org/wiki/Envy#In_philosophy Mudita"In Buddhism the third of the four divine abidings is mudita, taking joy in the good fortune of another. This virtue is considered the antidote to envy and the opposite of schadenfreude."
 
 This utility is preferable to alsamixer(1) for those with ice1712-based cards:
-<A href="http://www.m-audio.com/images/global/manuals/Delta1010LT-Manual.pdf">
-M-Audio Delta 1010
-</A>
-,
-<A href="http://www.m-audio.com/images/global/manuals/Delta1010LT-Manual.pdf">
-Delta 1010LT
-</A>
-, Delta DiO 2496,
-<A href="http://www.m-audio.com/images/global/manuals/070212_Delta66_UG_EN01.pdf">
-Delta 66
-</A>
-,
-<A href="http://www.m-audio.com/images/global/manuals/Delta44_Manual.pdf">
-Delta 44
-</A>
-, Delta 410 and
-<A href="http://www.m-audio.com/images/global/manuals/Audiophile2496_Manual.pdf">
-Audiophile 2496
-</A>
-.
-<A href="ftp://ftp.terratec.net/Audio/EWS/88MT/Manual/EWS88MT_Manual_GB.pdf">
-Terratec EWS 88MT
-</A>
-,
-<A href="ftp://ftp.terratec.de/Audio/EWS/88D/Manual/EWS88D_Manual_GB.pdf">
-EWS 88D
-</A>
-,
-<A href="ftp://ftp.terratec.net/Audio/EWX/2496/Manual/EWX2496_Manual_GB.pdf">
-EWX 24/96
-</A>
-,
-<A href="ftp://ftp.terratec.net/Audio/DMX6fire2496/Manual/DMX6fire2496_Manual_GB.pdf">
-DMX 6Fire
-</A>
-, Phase 88. Hoontech Soundtrack DSP 24, Soundtrack DSP 24 Value, Soundtrack DSP 24 Media 7.1.
-<A href="http://www.event1.com/Support/Manuals/EZ8_MANUAL_V1_0.pdf">
-Event Electronics EZ8
-</A>
-. Digigram VX442.
-<A href="http://www.lionstracs.com/store/msaudio-board-envy24-p-122.html">
-Lionstracs
-</A>
-,
-<A href="http://www.lionstracs.com/store/mixer-board-p-210.html">
-Mediastaton
-</A>
-.
-<A href="http://www.musonik.com/index.php/terrasoniq-ts-88.html">
-Terrasoniq TS 88
-</A>
-.
-<A href="http://www.soundonsound.com/sos/aug02/articles/edirolda2496.asp">
-Roland/Edirol DA-2496
-</A>
-.
-Now available, version 1.XX: * subversion: svn checkout http://mudita24.googlecode.com/svn/trunk/mudita24 mudita24-svn * Included with upcoming
-<A href='http://www.remastersys.com/forums/index.php?topic=934.msg5335'>
-AV Linux 4.0
-</A>
-.
+http://www.m-audio.com/images/global/manuals/Delta1010LT-Manual.pdf M-Audio Delta 1010,
+
+Delta 1010LT, Delta DiO 2496,
+http://www.m-audio.com/images/global/manuals/070212_Delta66_UG_EN01.pdf Delta 66,
+http://www.m-audio.com/images/global/manuals/Delta44_Manual.pdf Delta 44, Delta 410 and
+http://www.m-audio.com/images/global/manuals/Audiophile2496_Manual.pdf Audiophile 2496.
+ftp://ftp.terratec.net/Audio/EWS/88MT/Manual/EWS88MT_Manual_GB.pdf Terratec EWS 88MT,
+ftp://ftp.terratec.de/Audio/EWS/88D/Manual/EWS88D_Manual_GB.pdf EWS 88D,
+ftp://ftp.terratec.net/Audio/EWX/2496/Manual/EWX2496_Manual_GB.pdf EWX 24/96,
+ftp://ftp.terratec.net/Audio/DMX6fire2496/Manual/DMX6fire2496_Manual_GB.pdf DMX 6Fire, Phase 88. Hoontech Soundtrack DSP 24, Soundtrack DSP 24 Value, Soundtrack DSP 24 Media 7.1.
+http://www.event1.com/Support/Manuals/EZ8_MANUAL_V1_0.pdf Event Electronics EZ8. Digigram VX442.
+http://www.lionstracs.com/store/msaudio-board-envy24-p-122.html Lionstracs,
+http://www.lionstracs.com/store/mixer-board-p-210.html Mediastaton.
+http://www.musonik.com/index.php/terrasoniq-ts-88.html Terrasoniq TS 88.
+http://www.soundonsound.com/sos/aug02/articles/edirolda2496.asp Roland/Edirol DA-2496 
+
+* Included as package 'mudita24' on Ubuntu.
 
 Tim E. Real has made a patch available which allows the "Monitor Inputs" and "Monitor PCMs" metering and attenuators to resize correctly with a window resize, and resolves complaints regarding Gtk's "detent" on the sliders: http://lalists.stanford.edu/lad/2010/08/0059.html
 
