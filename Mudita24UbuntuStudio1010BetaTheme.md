@@ -1,0 +1,12 @@
+# Screenshots of Mudita24 using Ubuntu Studio 10.10 Beta Theme #
+
+Asmo Koskinen provided these screenshots mentioned in this thread:
+http://fossplanet.com/f10/envy24control-mudita24-51418/
+
+![http://www.arkki.info/howto/Ubuntu_Studio_Testing/Mudita24/Kuvakaappaus-Envy24%20Control%20Utility%201.0.3%20(M%20Audio%20Delta%2066%20at%200x1040,%20irq%2022)-0.png](http://www.arkki.info/howto/Ubuntu_Studio_Testing/Mudita24/Kuvakaappaus-Envy24%20Control%20Utility%201.0.3%20(M%20Audio%20Delta%2066%20at%200x1040,%20irq%2022)-0.png)
+![http://www.arkki.info/howto/Ubuntu_Studio_Testing/Mudita24/Kuvakaappaus-Envy24%20Control%20Utility%201.0.3%20(M%20Audio%20Delta%2066%20at%200x1040,%20irq%2022)-1.png](http://www.arkki.info/howto/Ubuntu_Studio_Testing/Mudita24/Kuvakaappaus-Envy24%20Control%20Utility%201.0.3%20(M%20Audio%20Delta%2066%20at%200x1040,%20irq%2022)-1.png)
+![http://www.arkki.info/howto/Ubuntu_Studio_Testing/Mudita24/Kuvakaappaus-Envy24%20Control%20Utility%201.0.3%20(M%20Audio%20Delta%2066%20at%200x1040,%20irq%2022)-2.png](http://www.arkki.info/howto/Ubuntu_Studio_Testing/Mudita24/Kuvakaappaus-Envy24%20Control%20Utility%201.0.3%20(M%20Audio%20Delta%2066%20at%200x1040,%20irq%2022)-2.png)
+![http://www.arkki.info/howto/Ubuntu_Studio_Testing/Mudita24/Kuvakaappaus-Envy24%20Control%20Utility%201.0.3%20(M%20Audio%20Delta%2066%20at%200x1040,%20irq%2022)-3.png](http://www.arkki.info/howto/Ubuntu_Studio_Testing/Mudita24/Kuvakaappaus-Envy24%20Control%20Utility%201.0.3%20(M%20Audio%20Delta%2066%20at%200x1040,%20irq%2022)-3.png)
+![http://www.arkki.info/howto/Ubuntu_Studio_Testing/Mudita24/Kuvakaappaus-Envy24%20Control%20Utility%201.0.3%20(M%20Audio%20Delta%2066%20at%200x1040,%20irq%2022)-4.png](http://www.arkki.info/howto/Ubuntu_Studio_Testing/Mudita24/Kuvakaappaus-Envy24%20Control%20Utility%201.0.3%20(M%20Audio%20Delta%2066%20at%200x1040,%20irq%2022)-4.png)
+![http://www.arkki.info/howto/Ubuntu_Studio_Testing/Mudita24/Kuvakaappaus-Envy24%20Control%20Utility%201.0.3%20(M%20Audio%20Delta%2066%20at%200x1040,%20irq%2022)-5.png](http://www.arkki.info/howto/Ubuntu_Studio_Testing/Mudita24/Kuvakaappaus-Envy24%20Control%20Utility%201.0.3%20(M%20Audio%20Delta%2066%20at%200x1040,%20irq%2022)-5.png)
+![http://www.arkki.info/howto/Ubuntu_Studio_Testing/Mudita24/Kuvakaappaus-Envy24%20Control%20Utility%201.0.3%20(M%20Audio%20Delta%2066%20at%200x1040,%20irq%2022)-6.png](http://www.arkki.info/howto/Ubuntu_Studio_Testing/Mudita24/Kuvakaappaus-Envy24%20Control%20Utility%201.0.3%20(M%20Audio%20Delta%2066%20at%200x1040,%20irq%2022)-6.png)
