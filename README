@@ -11,21 +11,14 @@ Mudita24 provides alternate name to avoid confusion with "envy24control 0.6.0" u
 http://en.wikipedia.org/wiki/Envy#In_philosophy Mudita"In Buddhism the third of the four divine abidings is mudita, taking joy in the good fortune of another. This virtue is considered the antidote to envy and the opposite of schadenfreude."
 
 This utility is preferable to alsamixer(1) for those with ice1712-based cards:
-http://www.m-audio.com/images/global/manuals/Delta1010LT-Manual.pdf M-Audio Delta 1010,
-
-Delta 1010LT, Delta DiO 2496,
-http://www.m-audio.com/images/global/manuals/070212_Delta66_UG_EN01.pdf Delta 66,
-http://www.m-audio.com/images/global/manuals/Delta44_Manual.pdf Delta 44, Delta 410 and
-http://www.m-audio.com/images/global/manuals/Audiophile2496_Manual.pdf Audiophile 2496.
-ftp://ftp.terratec.net/Audio/EWS/88MT/Manual/EWS88MT_Manual_GB.pdf Terratec EWS 88MT,
-ftp://ftp.terratec.de/Audio/EWS/88D/Manual/EWS88D_Manual_GB.pdf EWS 88D,
-ftp://ftp.terratec.net/Audio/EWX/2496/Manual/EWX2496_Manual_GB.pdf EWX 24/96,
-ftp://ftp.terratec.net/Audio/DMX6fire2496/Manual/DMX6fire2496_Manual_GB.pdf DMX 6Fire, Phase 88. Hoontech Soundtrack DSP 24, Soundtrack DSP 24 Value, Soundtrack DSP 24 Media 7.1.
-http://www.event1.com/Support/Manuals/EZ8_MANUAL_V1_0.pdf Event Electronics EZ8. Digigram VX442.
-http://www.lionstracs.com/store/msaudio-board-envy24-p-122.html Lionstracs,
-http://www.lionstracs.com/store/mixer-board-p-210.html Mediastaton.
-http://www.musonik.com/index.php/terrasoniq-ts-88.html Terrasoniq TS 88.
-http://www.soundonsound.com/sos/aug02/articles/edirolda2496.asp Roland/Edirol DA-2496 
+M-Audio Delta 1010, Delta 1010LT, Delta DiO 2496, Delta 66, Delta 44, Delta 410 and Audiophile 2496.
+Terratec EWS 88MT, EWS 88D, EWX 24/96, DMX 6Fire, Phase 88.
+Hoontech Soundtrack DSP 24, Soundtrack DSP 24 Value, Soundtrack DSP 24 Media 7.1.
+Event Electronics EZ8.
+Digigram VX442.
+Lionstracs Mediastation.
+Terrasoniq TS 88.
+Roland/Edirol DA-2496 ( http://www.soundonsound.com/sos/aug02/articles/edirolda2496.asp )
 
 * Included as package 'mudita24' on Ubuntu.
 
